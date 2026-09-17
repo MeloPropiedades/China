@@ -418,8 +418,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const CLOUDINARY_CLOUD = 'dqykaho5a';
-const CLOUDINARY_PRESET = 'chinamates';
+const IMGBB_API_KEY = '006d18fa316de0d33294e54a2431d2d6';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAaTuVvGPfL7o7x1JYHZin6Pfhxbo52vOw",
@@ -559,20 +558,30 @@ async function subirImagen(file) {
     const prog = document.getElementById('upload-progress');
     const bar = document.getElementById('upload-progress-bar');
     prog.style.display = 'block';
-    bar.style.width = '30%';
+    bar.style.width = '20%';
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_PRESET);
-    formData.append('folder', 'chinamates');
+    formData.append('image', file);
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+    xhr.open('POST', `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) bar.style.width = Math.round(e.loaded/e.total*90)+'%';
     };
     xhr.onload = () => {
       prog.style.display = 'none'; bar.style.width = '0%';
-      if (xhr.status === 200) resolve(JSON.parse(xhr.responseText).secure_url);
-      else reject(new Error('Error al subir imagen'));
+      if (xhr.status === 200) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.success && res.data && res.data.url) {
+            resolve(res.data.url);
+          } else {
+            reject(new Error('Respuesta inválida de ImgBB'));
+          }
+        } catch(e) {
+          reject(new Error('Error procesando respuesta'));
+        }
+      } else {
+        reject(new Error('Error al subir imagen (código ' + xhr.status + ')'));
+      }
     };
     xhr.onerror = () => { prog.style.display='none'; reject(new Error('Error de red')); };
     xhr.send(formData);
