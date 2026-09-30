@@ -553,18 +553,63 @@ window.quitarImagen = function(e) {
   document.getElementById('prod-img-file').value = '';
 };
 
-async function subirImagen(file) {
+// Comprime y redimensiona la imagen antes de subir
+async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   return new Promise((resolve, reject) => {
-    const prog = document.getElementById('upload-progress');
-    const bar = document.getElementById('upload-progress-bar');
-    prog.style.display = 'block';
-    bar.style.width = '20%';
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Error leyendo archivo'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Error cargando imagen'));
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxWidth) {
+          h = Math.round(h * (maxWidth / w));
+          w = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('Error comprimiendo'));
+          console.log(`Original: ${(file.size/1024).toFixed(0)}KB → Comprimido: ${(blob.size/1024).toFixed(0)}KB`);
+          resolve(blob);
+        }, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function subirImagen(file) {
+  const prog = document.getElementById('upload-progress');
+  const bar = document.getElementById('upload-progress-bar');
+  prog.style.display = 'block';
+  bar.style.width = '10%';
+
+  // 1. Comprimir en el navegador
+  let blobToUpload;
+  try {
+    blobToUpload = await comprimirImagen(file);
+    bar.style.width = '30%';
+  } catch(e) {
+    console.warn('Compresión falló, subiendo original:', e);
+    blobToUpload = file;
+  }
+
+  // 2. Subir a ImgBB
+  return new Promise((resolve, reject) => {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', blobToUpload, 'imagen.jpg');
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`);
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) bar.style.width = Math.round(e.loaded/e.total*90)+'%';
+      if (e.lengthComputable) bar.style.width = (30 + Math.round(e.loaded/e.total*60)) + '%';
     };
     xhr.onload = () => {
       prog.style.display = 'none'; bar.style.width = '0%';
