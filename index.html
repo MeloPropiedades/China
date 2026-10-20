@@ -1680,7 +1680,7 @@ function renderProductos(lista) {
     <div class="producto-card" onclick="if(!event.target.closest('button'))window.abrirProducto('${p.id}')">
       <div style="position:relative">
         ${p.imgUrl
-          ? `<img src="${p.imgUrl}" alt="${p.nombre}" loading="lazy" decoding="async" style="width:100%;height:220px;object-fit:cover;object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%;display:block;cursor:pointer;background:#f0e9de;" onerror="this.style.display=\'none\';if(this.nextElementSibling)this.nextElementSibling.style.display=\'flex\'"/><div class="producto-img-placeholder" style="display:none"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
+          ? `<img src="${p.imgUrlThumb || p.imgUrl}" alt="${p.nombre}" loading="lazy" decoding="async" style="width:100%;height:220px;object-fit:cover;object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%;display:block;cursor:pointer;background:#f0e9de;" onerror="this.style.display=\'none\';if(this.nextElementSibling)this.nextElementSibling.style.display=\'flex\'"/><div class="producto-img-placeholder" style="display:none"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
           : `<div class="producto-img-placeholder"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
         }
         ${p.badge ? `<div class="prod-badge ${['Nuevo','Importada','Orgánica'].includes(p.badge)?'oferta':''}">${p.badge}</div>` : ''}
@@ -2013,7 +2013,7 @@ window.abrirVista = function(cat, titulo) {
     grid.innerHTML = lista.map(p => {
       const nombreEsc = (p.nombre || '').replace(/'/g, "\\'");
       const imgHtml = p.imgUrl
-        ? `<img src="${p.imgUrl}" alt="${p.nombre}" loading="lazy" decoding="async" style="width:100%;height:220px;object-fit:cover;object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%;display:block;cursor:pointer;background:#f0e9de;" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"/><div class="producto-img-placeholder" style="display:none"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
+        ? `<img src="${p.imgUrlThumb || p.imgUrl}" alt="${p.nombre}" loading="lazy" decoding="async" style="width:100%;height:220px;object-fit:cover;object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%;display:block;cursor:pointer;background:#f0e9de;" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"/><div class="producto-img-placeholder" style="display:none"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
         : `<div class="producto-img-placeholder"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`;
       return `<div class="producto-card" onclick="if(!event.target.closest('button'))window.abrirProducto('${p.id}')">
         <div style="position:relative">
@@ -2072,7 +2072,7 @@ function renderDestacado(gridId, tag, textoVacio) {
   grid.innerHTML = lista.map(p => {
     const nombreEsc = (p.nombre || '').replace(/'/g, "\\'");
     const imgHtml = p.imgUrl
-      ? `<img src="${p.imgUrl}" alt="${p.nombre}" loading="lazy" decoding="async" style="width:100%;height:220px;object-fit:cover;object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%;display:block;cursor:pointer;background:#f0e9de;" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"/><div class="producto-img-placeholder" style="display:none"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
+      ? `<img src="${p.imgUrlThumb || p.imgUrl}" alt="${p.nombre}" loading="lazy" decoding="async" style="width:100%;height:220px;object-fit:cover;object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%;display:block;cursor:pointer;background:#f0e9de;" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"/><div class="producto-img-placeholder" style="display:none"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
       : `<div class="producto-img-placeholder"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`;
     return `<div class="producto-card" onclick="if(!event.target.closest('button'))window.abrirProducto('${p.id}')">
       <div style="position:relative">

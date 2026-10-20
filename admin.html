@@ -1031,6 +1031,7 @@
     <div class="modal-body">
       <input type="hidden" id="prod-id" />
       <input type="hidden" id="prod-img-url-actual" />
+      <input type="hidden" id="prod-img-url-thumb-actual" />
 
       <div class="form-group">
         <label>Foto del producto</label>
@@ -1600,6 +1601,7 @@ window.quitarImagen = function(e) {
   e.preventDefault(); e.stopPropagation();
   imagenSeleccionada = null;
   document.getElementById('prod-img-url-actual').value = '';
+  document.getElementById('prod-img-url-thumb-actual').value = '';
   document.getElementById('upload-placeholder').style.display = 'block';
   document.getElementById('upload-preview-wrap').style.display = 'none';
   document.getElementById('prod-img-file').value = '';
@@ -1715,51 +1717,63 @@ async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   });
 }
 
-async function subirImagen(file) {
-  const prog = document.getElementById('upload-progress');
-  const bar = document.getElementById('upload-progress-bar');
-  prog.style.display = 'block';
-  bar.style.width = '10%';
-
-  // 1. Comprimir en el navegador
-  let blobToUpload;
-  try {
-    blobToUpload = await comprimirImagen(file);
-    bar.style.width = '30%';
-  } catch(e) {
-    console.warn('Compresión falló, subiendo original:', e);
-    blobToUpload = file;
-  }
-
-  // 2. Subir a ImgBB
+// Sube UN blob a ImgBB — devuelve URL
+function uploadBlobToImgBB(blob) {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
-    formData.append('image', blobToUpload, 'imagen.jpg');
+    formData.append('image', blob, 'imagen.jpg');
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`);
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) bar.style.width = (30 + Math.round(e.loaded/e.total*60)) + '%';
-    };
     xhr.onload = () => {
-      prog.style.display = 'none'; bar.style.width = '0%';
       if (xhr.status === 200) {
         try {
           const res = JSON.parse(xhr.responseText);
-          if (res.success && res.data && res.data.url) {
-            resolve(res.data.url);
-          } else {
-            reject(new Error('Respuesta inválida de ImgBB'));
-          }
-        } catch(e) {
-          reject(new Error('Error procesando respuesta'));
-        }
-      } else {
-        reject(new Error('Error al subir imagen (código ' + xhr.status + ')'));
-      }
+          if (res.success && res.data && res.data.url) resolve(res.data.url);
+          else reject(new Error('Respuesta inválida de ImgBB'));
+        } catch(e) { reject(new Error('Error procesando respuesta')); }
+      } else reject(new Error('Error al subir imagen (código ' + xhr.status + ')'));
     };
-    xhr.onerror = () => { prog.style.display='none'; reject(new Error('Error de red')); };
+    xhr.onerror = () => reject(new Error('Error de red'));
     xhr.send(formData);
   });
+}
+
+// Sube el archivo en DOS tamaños: full (1200px) y thumb (600px) en paralelo
+// Devuelve { full, thumb }
+async function subirImagen(file) {
+  const prog = document.getElementById('upload-progress');
+  const bar = document.getElementById('upload-progress-bar');
+  if (prog) prog.style.display = 'block';
+  if (bar) bar.style.width = '10%';
+
+  // 1. Generar los dos blobs en paralelo
+  let fullBlob, thumbBlob;
+  try {
+    [fullBlob, thumbBlob] = await Promise.all([
+      comprimirImagen(file, 1200, 0.82),
+      comprimirImagen(file, 600, 0.78)
+    ]);
+    if (bar) bar.style.width = '35%';
+  } catch(e) {
+    console.warn('Compresión falló, intento con original:', e);
+    fullBlob = file;
+    thumbBlob = file;
+  }
+
+  // 2. Subir ambos en paralelo a ImgBB
+  try {
+    const [fullUrl, thumbUrl] = await Promise.all([
+      uploadBlobToImgBB(fullBlob),
+      uploadBlobToImgBB(thumbBlob)
+    ]);
+    if (bar) bar.style.width = '100%';
+    setTimeout(() => { if (prog) prog.style.display = 'none'; if (bar) bar.style.width = '0%'; }, 300);
+    return { full: fullUrl, thumb: thumbUrl };
+  } catch(e) {
+    if (prog) prog.style.display = 'none';
+    if (bar) bar.style.width = '0%';
+    throw e;
+  }
 }
 
 let coloresActuales = [];
@@ -1802,6 +1816,7 @@ window.abrirModal = function(prod = null) {
   document.getElementById('modal-titulo').textContent = prod ? 'Editar producto' : 'Agregar producto';
   document.getElementById('prod-id').value = prod?.id || '';
   document.getElementById('prod-img-url-actual').value = prod?.imgUrl || '';
+  document.getElementById('prod-img-url-thumb-actual').value = prod?.imgUrlThumb || '';
   document.getElementById('prod-nombre').value = prod?.nombre || '';
   document.getElementById('prod-cat').value = prod?.cat || '';
   document.getElementById('prod-emoji').value = prod?.emoji || '';
@@ -1888,10 +1903,19 @@ window.guardarProducto = async function() {
   btn.disabled = true;
   const id = document.getElementById('prod-id').value;
   let imgUrl = document.getElementById('prod-img-url-actual').value || null;
+  let imgUrlThumb = document.getElementById('prod-img-url-thumb-actual')?.value || null;
   try {
     if (imagenSeleccionada) {
       btn.textContent = 'Subiendo imagen...';
-      imgUrl = await subirImagen(imagenSeleccionada);
+      const subida = await subirImagen(imagenSeleccionada);
+      // Backwards compat: subirImagen puede devolver string (viejo) o {full,thumb} (nuevo)
+      if (typeof subida === 'string') {
+        imgUrl = subida;
+        imgUrlThumb = subida;
+      } else {
+        imgUrl = subida.full;
+        imgUrlThumb = subida.thumb;
+      }
     }
     btn.textContent = 'Guardando...';
     const data = {
@@ -1909,6 +1933,7 @@ window.guardarProducto = async function() {
       imgPosY: Number(document.getElementById('reencuadre-y').value) || 50,
       imgZoom: Number(document.getElementById('reencuadre-zoom').value) || 100,
       imgUrl: imgUrl || null,
+      imgUrlThumb: imgUrlThumb || imgUrl || null,
       updatedAt: serverTimestamp()
     };
     if (id) {
@@ -2111,7 +2136,9 @@ window.onSlideImageSelected = async function(ev) {
   btn.disabled = true;
   btn.textContent = 'Subiendo imagen...';
   try {
-    const url = await subirImagen(file);
+    const subida = await subirImagen(file);
+    // Para slides usamos la versión full (se ve a pantalla completa)
+    const url = typeof subida === 'string' ? subida : subida.full;
     slideImgDataUrl = url;
     document.getElementById('slide-img-upload-placeholder').style.display = 'none';
     document.getElementById('slide-img-preview-wrap').style.display = 'block';
