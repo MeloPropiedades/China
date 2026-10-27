@@ -1251,6 +1251,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// === HOSTING DE IMÁGENES: SUPABASE STORAGE ===
+const SUPABASE_URL = 'https://tdzayysbbraqfydudlsg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_L1qGEQzCkCGnKyb-70NmGw_SCGhhYko';
+const SUPABASE_BUCKET = 'productos';
+// Legacy — se mantiene para que el script de migración pueda leer URLs viejas:
 const IMGBB_API_KEY = '006d18fa316de0d33294e54a2431d2d6';
 
 const firebaseConfig = {
@@ -1717,25 +1722,32 @@ async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   });
 }
 
-// Sube UN blob a ImgBB — devuelve URL
-function uploadBlobToImgBB(blob) {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    formData.append('image', blob, 'imagen.jpg');
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`);
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        try {
-          const res = JSON.parse(xhr.responseText);
-          if (res.success && res.data && res.data.url) resolve(res.data.url);
-          else reject(new Error('Respuesta inválida de ImgBB'));
-        } catch(e) { reject(new Error('Error procesando respuesta')); }
-      } else reject(new Error('Error al subir imagen (código ' + xhr.status + ')'));
-    };
-    xhr.onerror = () => reject(new Error('Error de red'));
-    xhr.send(formData);
+// Genera un nombre de archivo único (timestamp + random + sufijo)
+function nombreArchivoUnico(sufijo) {
+  const ts = Date.now();
+  const rand = Math.random().toString(36).substring(2, 10);
+  return `${ts}-${rand}-${sufijo}.jpg`;
+}
+
+// Sube UN blob a Supabase Storage — devuelve URL pública
+async function uploadBlobToSupabase(blob, filename) {
+  const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${filename}`;
+  const resp = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'image/jpeg',
+      'x-upsert': 'true'
+    },
+    body: blob
   });
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`Supabase upload falló (${resp.status}): ${errText.slice(0, 200)}`);
+  }
+  // URL pública directa (el bucket es público)
+  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`;
 }
 
 // Sube el archivo en DOS tamaños: full (1200px) y thumb (600px) en paralelo
@@ -1760,11 +1772,14 @@ async function subirImagen(file) {
     thumbBlob = file;
   }
 
-  // 2. Subir ambos en paralelo a ImgBB
+  // 2. Subir ambos en paralelo a Supabase Storage
+  const fullName = nombreArchivoUnico('full');
+  const thumbName = nombreArchivoUnico('thumb');
+
   try {
     const [fullUrl, thumbUrl] = await Promise.all([
-      uploadBlobToImgBB(fullBlob),
-      uploadBlobToImgBB(thumbBlob)
+      uploadBlobToSupabase(fullBlob, fullName),
+      uploadBlobToSupabase(thumbBlob, thumbName)
     ]);
     if (bar) bar.style.width = '100%';
     setTimeout(() => { if (prog) prog.style.display = 'none'; if (bar) bar.style.width = '0%'; }, 300);
