@@ -1492,6 +1492,19 @@
   /* Also make the pd-image not block click events on wrap */
   .pd-image { pointer-events: none; }
 
+  /* OCULTAR BADGE "POWERED BY NETLIFY" */
+  .netlify-badge,
+  [class*="netlify-badge"],
+  #netlify-badge,
+  a[href*="netlify.com/powered"],
+  a[href*="netlify.com/?utm"],
+  a[href*="app.netlify.com"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
 </style>
 </head>
 <body>
