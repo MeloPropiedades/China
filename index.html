@@ -248,6 +248,24 @@
   }
   .agregar-btn:hover { background: var(--cafe-arcilla); }
 
+  /* PIE DE PRODUCTO (viene del primer mensaje del marquee) */
+  .producto-pie {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--linea);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--verde-salvia);
+    text-align: center;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .producto-pie::before {
+    content: '✓ ';
+    margin-right: 4px;
+  }
+
   /* CARRITO */
   .carrito-overlay {
     position: fixed; inset: 0; background: rgba(77,73,68,0.55);
@@ -1955,6 +1973,7 @@ function renderProductos(lista) {
           <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito"
             ${p.stock===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
         </div>
+        ${(window.mensajesMarquee && window.mensajesMarquee[0]) ? `<div class="producto-pie">${window.mensajesMarquee[0]}</div>` : ''}
       </div>
     </div>
   `).join('');
@@ -2231,6 +2250,8 @@ if (getCarouselSlides().length > 1) startCarouselInterval();
 // ============================================
 // LOAD SITE CONFIG (carousel + marquee from Firebase)
 // ============================================
+window.mensajesMarquee = [];  // Expuesto global para que las cards de productos puedan leer
+
 (async function loadSiteConfig() {
   try {
     const snap = await getDoc(doc(db, 'config', 'site'));
@@ -2240,6 +2261,26 @@ if (getCarouselSlides().length > 1) startCarouselInterval();
     }
     const cfg = snap.data();
     console.log('[Config] Cargada:', cfg);
+
+    // --- ESTILOS DEL CARRUSEL (fuente, tamaños, colores) ---
+    if (cfg.carouselStyle) {
+      const s = cfg.carouselStyle;
+      const styleTag = document.createElement('style');
+      styleTag.id = 'carousel-custom-style';
+      styleTag.textContent = `
+        .carousel-slide-content h1 {
+          font-family: ${s.font || "'Oswald', sans-serif"} !important;
+          font-size: ${s.tituloSize || '3rem'} !important;
+          color: ${s.tituloColor || '#F2EEE8'} !important;
+        }
+        .carousel-slide-content p {
+          font-family: ${s.font || "'Oswald', sans-serif"} !important;
+          font-size: ${s.subSize || '1.2rem'} !important;
+          color: ${s.subColor || '#F2EEE8'} !important;
+        }
+      `;
+      document.head.appendChild(styleTag);
+    }
 
     // --- SLIDES ---
     if (Array.isArray(cfg.slides) && cfg.slides.length > 0) {
@@ -2270,11 +2311,37 @@ if (getCarouselSlides().length > 1) startCarouselInterval();
 
     // --- MARQUEE ---
     if (Array.isArray(cfg.marquee) && cfg.marquee.length > 0) {
+      window.mensajesMarquee = cfg.marquee.slice();
+
       const track = document.querySelector('.marquee-track');
       if (track) {
         // Duplicate messages twice for infinite scroll effect
         const msgs = [...cfg.marquee, ...cfg.marquee];
         track.innerHTML = msgs.map(m => `<span class="marquee-item">${m}</span>`).join('');
+      }
+
+      // --- BANNER-ENVIOS (3 cards abajo del hero) ---
+      // Toma los primeros 3 mensajes del marquee, mantiene iconos fijos por posición
+      const bannerEl = document.getElementById('envios');
+      if (bannerEl) {
+        const iconos = ['🤝', '💳', '🌿'];
+        const first3 = cfg.marquee.slice(0, 3);
+        if (first3.length > 0) {
+          bannerEl.innerHTML = first3.map((msg, i) => `
+            <div class="banner-item">
+              <span class="banner-icon">${iconos[i] || '✨'}</span>
+              <div class="banner-text"><strong>${msg}</strong></div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // --- PIE DE PRODUCTOS: forzar re-render de las grillas para que las cards tomen el mensaje ---
+      if (typeof window.renderDestacados === 'function') window.renderDestacados();
+      if (typeof renderProductos === 'function' && typeof todosLosProductos !== 'undefined') {
+        const activa = (typeof categoriaActiva !== 'undefined') ? categoriaActiva : 'todos';
+        const lista = activa === 'todos' ? todosLosProductos : todosLosProductos.filter(p => p.cat === activa);
+        renderProductos(lista);
       }
     }
   } catch(e) {
@@ -2363,6 +2430,7 @@ window.abrirVista = function(cat, titulo) {
             </div>
             <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito" ${p.stock===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
           </div>
+          ${(window.mensajesMarquee && window.mensajesMarquee[0]) ? `<div class="producto-pie">${window.mensajesMarquee[0]}</div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -2422,6 +2490,7 @@ function renderDestacado(gridId, tag, textoVacio) {
           </div>
           <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito" ${p.stock===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
         </div>
+        ${(window.mensajesMarquee && window.mensajesMarquee[0]) ? `<div class="producto-pie">${window.mensajesMarquee[0]}</div>` : ''}
       </div>
     </div>`;
   }).join('');

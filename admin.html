@@ -705,6 +705,87 @@
 
   /* MARQUEE ADMIN */
   .marquee-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+
+  /* ESTILOS DEL CARRUSEL */
+  .estilo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .estilo-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .estilo-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tierra-medio);
+    font-weight: 500;
+  }
+  .estilo-label span {
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--tierra-oscuro);
+    font-weight: 400;
+  }
+  .estilo-input {
+    padding: 10px 12px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+  }
+  .estilo-range {
+    width: 100%;
+    accent-color: var(--tierra-oscuro);
+  }
+  .estilo-color {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 2px;
+    background: transparent;
+  }
+  .estilo-preview {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .estilo-preview-label {
+    padding: 10px 14px;
+    background: var(--beige-claro);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--tierra-medio);
+    border-bottom: 1px solid var(--borde);
+  }
+  .estilo-preview-slide {
+    background: linear-gradient(135deg, #6b5544, #4a3a2d);
+    padding: 3rem 2rem;
+    text-align: center;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .estilo-preview-titulo {
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .estilo-preview-sub {
+    font-weight: 300;
+  }
   .marquee-item-admin {
     background: var(--blanco);
     border: 1px solid var(--borde);
@@ -990,6 +1071,7 @@
 
       <div class="config-tabs">
         <button class="config-tab active" onclick="switchConfigTab('slides', this)">🎞️ Carrusel</button>
+        <button class="config-tab" onclick="switchConfigTab('estilos', this)">🎨 Estilos del carrusel</button>
         <button class="config-tab" onclick="switchConfigTab('marquee', this)">📢 Mensajes en movimiento</button>
       </div>
 
@@ -1006,11 +1088,64 @@
         </div>
       </div>
 
+      <!-- TAB ESTILOS -->
+      <div class="config-panel" id="config-panel-estilos">
+        <p style="color:var(--tierra-medio);font-size:0.9rem;font-weight:300;margin:0 0 1.25rem;">
+          Estilos de los textos de TODOS los slides del carrusel (aplican a todos por igual)
+        </p>
+
+        <div class="estilo-grid">
+          <div class="estilo-item">
+            <label class="estilo-label">Tipo de letra</label>
+            <select id="estilo-font" class="estilo-input">
+              <option value="'Oswald', sans-serif">Oswald (sans serif, moderna)</option>
+              <option value="'Playfair Display', serif">Playfair Display (serif, elegante)</option>
+              <option value="'Montserrat', sans-serif">Montserrat (sans serif, limpia)</option>
+              <option value="'DM Serif Display', serif">DM Serif Display (serif, impactante)</option>
+              <option value="'Poppins', sans-serif">Poppins (sans serif, suave)</option>
+              <option value="'DM Sans', sans-serif">DM Sans (sans serif, legible)</option>
+            </select>
+          </div>
+
+          <div class="estilo-item">
+            <label class="estilo-label">Tamaño del título <span id="val-titulo-size">3rem</span></label>
+            <input type="range" id="estilo-titulo-size" min="1.5" max="6" step="0.1" value="3" class="estilo-range" oninput="document.getElementById('val-titulo-size').textContent = this.value + 'rem'"/>
+          </div>
+
+          <div class="estilo-item">
+            <label class="estilo-label">Color del título</label>
+            <input type="color" id="estilo-titulo-color" value="#F2EEE8" class="estilo-color"/>
+          </div>
+
+          <div class="estilo-item">
+            <label class="estilo-label">Tamaño del subtítulo <span id="val-sub-size">1.2rem</span></label>
+            <input type="range" id="estilo-sub-size" min="0.7" max="2.5" step="0.05" value="1.2" class="estilo-range" oninput="document.getElementById('val-sub-size').textContent = this.value + 'rem'"/>
+          </div>
+
+          <div class="estilo-item">
+            <label class="estilo-label">Color del subtítulo</label>
+            <input type="color" id="estilo-sub-color" value="#F2EEE8" class="estilo-color"/>
+          </div>
+        </div>
+
+        <!-- Preview en vivo -->
+        <div class="estilo-preview" id="estilo-preview">
+          <div class="estilo-preview-label">Vista previa</div>
+          <div class="estilo-preview-slide">
+            <div class="estilo-preview-titulo" id="preview-titulo">Título de ejemplo</div>
+            <div class="estilo-preview-sub" id="preview-sub">Subtítulo que acompaña · 2 líneas de texto descriptivo</div>
+          </div>
+        </div>
+
+        <button class="btn-save-config" id="btn-save-estilos" onclick="guardarEstilos()">💾 Guardar estilos</button>
+      </div>
+
       <!-- TAB MARQUEE -->
       <div class="config-panel" id="config-panel-marquee">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:10px;">
           <p style="color:var(--tierra-medio);font-size:0.9rem;font-weight:300;margin:0;">
-            Mensajes que aparecen en movimiento arriba de la pantalla
+            Mensajes que aparecen en movimiento arriba de la pantalla.<br>
+            <strong style="color:var(--tierra-oscuro);">⚠ Los primeros 3 mensajes también se muestran en las franjas de "Retiro / Medios de pago / Productos" y debajo de cada producto.</strong>
           </p>
           <button class="btn-agregar" onclick="agregarMarqueeMsg()">+ Agregar mensaje</button>
         </div>
@@ -2037,7 +2172,16 @@ renderHistorial();
 // ============================================
 // SITE CONFIG (Carrusel + Marquee)
 // ============================================
-let siteConfig = { slides: [], marquee: [] };
+// Default style para el carrusel (si Firebase no tiene nada guardado)
+const DEFAULT_CAROUSEL_STYLE = {
+  font: "'Oswald', sans-serif",
+  tituloSize: '3rem',
+  tituloColor: '#F2EEE8',
+  subSize: '1.2rem',
+  subColor: '#F2EEE8'
+};
+
+let siteConfig = { slides: [], marquee: [], carouselStyle: { ...DEFAULT_CAROUSEL_STYLE } };
 let slideImgDataUrl = null;  // Imagen temporal cuando se agrega/edita slide
 
 const CONFIG_DOC_REF = doc(db, 'config', 'site');
@@ -2049,16 +2193,88 @@ async function cargarSiteConfig() {
       const data = snap.data();
       siteConfig.slides = Array.isArray(data.slides) ? data.slides : [];
       siteConfig.marquee = Array.isArray(data.marquee) ? data.marquee : [];
+      siteConfig.carouselStyle = { ...DEFAULT_CAROUSEL_STYLE, ...(data.carouselStyle || {}) };
     } else {
-      siteConfig = { slides: [], marquee: [] };
+      siteConfig = { slides: [], marquee: [], carouselStyle: { ...DEFAULT_CAROUSEL_STYLE } };
     }
     renderSlidesList();
     renderMarqueeList();
+    cargarEstilosEnForm();
   } catch(e) {
     console.error('Error cargando config:', e);
     showToast('Error cargando configuración', 'error');
   }
 }
+
+// Carga los estilos guardados en los inputs del form + preview
+function cargarEstilosEnForm() {
+  const s = siteConfig.carouselStyle || DEFAULT_CAROUSEL_STYLE;
+  const fontEl = document.getElementById('estilo-font');
+  const titSizeEl = document.getElementById('estilo-titulo-size');
+  const titColEl = document.getElementById('estilo-titulo-color');
+  const subSizeEl = document.getElementById('estilo-sub-size');
+  const subColEl = document.getElementById('estilo-sub-color');
+  if (!fontEl) return;
+
+  fontEl.value = s.font;
+  titSizeEl.value = parseFloat(s.tituloSize);
+  titColEl.value = s.tituloColor;
+  subSizeEl.value = parseFloat(s.subSize);
+  subColEl.value = s.subColor;
+
+  document.getElementById('val-titulo-size').textContent = titSizeEl.value + 'rem';
+  document.getElementById('val-sub-size').textContent = subSizeEl.value + 'rem';
+  actualizarPreviewEstilos();
+}
+
+// Live preview al tocar cualquier control
+function actualizarPreviewEstilos() {
+  const font = document.getElementById('estilo-font').value;
+  const titSize = document.getElementById('estilo-titulo-size').value + 'rem';
+  const titCol = document.getElementById('estilo-titulo-color').value;
+  const subSize = document.getElementById('estilo-sub-size').value + 'rem';
+  const subCol = document.getElementById('estilo-sub-color').value;
+  const prevTit = document.getElementById('preview-titulo');
+  const prevSub = document.getElementById('preview-sub');
+  if (!prevTit) return;
+  prevTit.style.fontFamily = font;
+  prevTit.style.fontSize = titSize;
+  prevTit.style.color = titCol;
+  prevSub.style.fontFamily = font;
+  prevSub.style.fontSize = subSize;
+  prevSub.style.color = subCol;
+}
+
+// Attach preview updater a todos los controles de estilo
+['estilo-font', 'estilo-titulo-size', 'estilo-titulo-color', 'estilo-sub-size', 'estilo-sub-color']
+  .forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', actualizarPreviewEstilos);
+  });
+
+window.guardarEstilos = async function() {
+  const style = {
+    font: document.getElementById('estilo-font').value,
+    tituloSize: document.getElementById('estilo-titulo-size').value + 'rem',
+    tituloColor: document.getElementById('estilo-titulo-color').value,
+    subSize: document.getElementById('estilo-sub-size').value + 'rem',
+    subColor: document.getElementById('estilo-sub-color').value
+  };
+  const btn = document.getElementById('btn-save-estilos');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try {
+    siteConfig.carouselStyle = style;
+    await setDoc(CONFIG_DOC_REF, { ...siteConfig, updatedAt: serverTimestamp() }, { merge: true });
+    showToast('Estilos del carrusel guardados ✓');
+  } catch(e) {
+    console.error(e);
+    showToast('Error al guardar estilos: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Guardar estilos';
+  }
+};
 
 window.switchConfigTab = function(tab, btn) {
   document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
