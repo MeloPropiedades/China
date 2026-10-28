@@ -1510,17 +1510,25 @@
   /* Also make the pd-image not block click events on wrap */
   .pd-image { pointer-events: none; }
 
-  /* OCULTAR BADGE "POWERED BY NETLIFY" */
+  /* OCULTAR BADGE "POWERED BY NETLIFY" (CSS fallback) */
   .netlify-badge,
   [class*="netlify-badge"],
   #netlify-badge,
   a[href*="netlify.com/powered"],
   a[href*="netlify.com/?utm"],
-  a[href*="app.netlify.com"] {
+  a[href*="app.netlify.com"],
+  a[href*="netlify.com"],
+  a[aria-label*="Netlify" i],
+  div[class*="Netlify" i],
+  div[id*="netlify" i] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
   }
 
 </style>
@@ -2272,11 +2280,22 @@ window.mensajesMarquee = [];  // Expuesto global para que las cards de productos
           font-family: ${s.font || "'Oswald', sans-serif"} !important;
           font-size: ${s.tituloSize || '3rem'} !important;
           color: ${s.tituloColor || '#F2EEE8'} !important;
+          margin-bottom: 1.75rem !important;
+          line-height: 1.1 !important;
         }
         .carousel-slide-content p {
           font-family: ${s.font || "'Oswald', sans-serif"} !important;
           font-size: ${s.subSize || '1.2rem'} !important;
           color: ${s.subColor || '#F2EEE8'} !important;
+          margin-bottom: 1.75rem !important;
+          line-height: 1.5 !important;
+        }
+        .carousel-slide-content .hero-badge {
+          margin-bottom: 1.25rem !important;
+        }
+        .carousel-slide-content .hero-btns {
+          margin-top: 1rem !important;
+          gap: 12px !important;
         }
       `;
       document.head.appendChild(styleTag);
@@ -2688,6 +2707,37 @@ window.addEventListener('popstate', () => {
 });
 
 
+</script>
+
+<!-- MATAR BADGE "POWERED BY NETLIFY" (si lo inyectan después de load) -->
+<script>
+(function killNetlifyBadge() {
+  function remove() {
+    const sel = 'a[href*="netlify"], [class*="netlify-badge"], [id*="netlify-badge"]';
+    document.querySelectorAll(sel).forEach(el => {
+      try { el.remove(); } catch(e) { el.style.cssText = 'display:none!important;visibility:hidden!important;position:absolute!important;left:-9999px!important;'; }
+    });
+    // También detectar por texto "Powered by Netlify" en cualquier anchor
+    document.querySelectorAll('a').forEach(a => {
+      const txt = (a.textContent || '').toLowerCase();
+      if (txt.includes('netlify') || txt.includes('powered by')) {
+        try { a.remove(); } catch(e) { a.style.display = 'none'; }
+      }
+    });
+  }
+  // Correr al cargar
+  remove();
+  // Correr periódicamente los primeros 10 segundos (por si lo inyectan tarde)
+  let runs = 0;
+  const int = setInterval(() => {
+    remove();
+    if (++runs > 20) clearInterval(int);
+  }, 500);
+  // Observer para matarlo si lo re-inyectan después
+  if (window.MutationObserver) {
+    new MutationObserver(() => remove()).observe(document.body, { childList: true, subtree: true });
+  }
+})();
 </script>
 
 </body>
