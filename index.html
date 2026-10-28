@@ -344,6 +344,200 @@
   }
   .wsp-btn:hover { background: var(--carbon-topo); }
   .wsp-icon { width: 22px; height: 22px; }
+
+  /* OPCIONES DE PAGO EN CARRITO */
+  .pago-titulo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+    margin: 1.25rem 0 0.75rem;
+  }
+  .pago-opt {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--hueso);
+    border: 1px solid var(--linea);
+    border-radius: 0;
+    cursor: pointer;
+    margin-bottom: 10px;
+    text-align: left;
+    transition: all 0.2s;
+    font-family: 'Poppins', sans-serif;
+  }
+  .pago-opt:hover:not(:disabled) {
+    border-color: var(--carbon-topo);
+    background: var(--greige);
+  }
+  .pago-opt:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .pago-opt-icon {
+    font-size: 1.5rem;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .pago-opt-txt { flex: 1; }
+  .pago-opt-nombre {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.88rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--carbon-topo);
+    font-weight: 500;
+  }
+  .pago-opt-detalle {
+    font-size: 0.75rem;
+    color: var(--texto-suave);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+  .pago-opt-arrow { color: var(--texto-suave); font-size: 1.2rem; }
+
+  /* MODAL DE TRANSFERENCIA */
+  .pago-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(77,73,68,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .pago-modal.open { opacity: 1; pointer-events: all; }
+  .pago-modal-card {
+    background: var(--hueso);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+  }
+  .pago-modal.open .pago-modal-card { transform: translateY(0); }
+  .pago-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--linea);
+  }
+  .pago-modal-header h3 {
+    margin: 0;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--carbon-topo);
+    font-weight: 500;
+  }
+  .pago-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: var(--texto-suave);
+    padding: 0;
+    line-height: 1;
+  }
+  .pago-modal-body { padding: 1.5rem 1.75rem; }
+  .pago-monto {
+    text-align: center;
+    padding: 1.25rem;
+    background: var(--greige);
+    margin-bottom: 1.5rem;
+  }
+  .pago-monto-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+    margin-bottom: 6px;
+  }
+  .pago-monto-valor {
+    font-family: 'Oswald', sans-serif;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--carbon-topo);
+    letter-spacing: 0.02em;
+  }
+  .pago-datos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .pago-dato {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--greige);
+    gap: 10px;
+  }
+  .pago-dato-info { flex: 1; min-width: 0; }
+  .pago-dato-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+    margin-bottom: 2px;
+  }
+  .pago-dato-valor {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--carbon-topo);
+    word-break: break-all;
+    font-weight: 400;
+  }
+  .pago-copy-btn {
+    background: var(--carbon-topo);
+    color: var(--hueso);
+    border: none;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .pago-copy-btn:hover { background: var(--cafe-arcilla); }
+  .pago-copy-btn.copied { background: var(--verde-salvia); }
+  .pago-pasos {
+    margin-bottom: 1.5rem;
+    padding: 14px 16px;
+    background: #fdf6e7;
+    border-left: 3px solid #d4a84c;
+    font-size: 0.85rem;
+    color: var(--carbon-topo);
+    line-height: 1.6;
+  }
+  .pago-pasos ol { margin: 6px 0 0; padding-left: 1.2rem; }
+  .pago-pasos li { margin-bottom: 4px; }
+
+  @media (max-width: 480px) {
+    .pago-modal-card { max-height: 95vh; }
+    .pago-modal-header, .pago-modal-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .pago-monto-valor { font-size: 1.6rem; }
+    .pago-dato { flex-direction: column; align-items: stretch; gap: 8px; }
+    .pago-copy-btn { width: 100%; padding: 10px; }
+  }
+
   .carrito-seguir {
     width: 100%; padding: 12px; background: none; color: var(--texto-suave);
     border: none; cursor: pointer; font-family: 'Poppins', sans-serif;
@@ -1625,11 +1819,60 @@
       <span>Total</span>
       <strong id="carrito-total-precio">$0</strong>
     </div>
-    <a id="wsp-pedido-btn" href="#" target="_blank" class="wsp-btn">
-      <svg class="wsp-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Pedir por WhatsApp
-    </a>
+
+    <div class="pago-titulo">¿Cómo querés pagar?</div>
+
+    <button class="pago-opt" onclick="window.abrirModalTransferencia()">
+      <span class="pago-opt-icon">💸</span>
+      <span class="pago-opt-txt">
+        <div class="pago-opt-nombre">Transferencia</div>
+        <div class="pago-opt-detalle">Al CVU de Ualá · Sin recargo</div>
+      </span>
+      <span class="pago-opt-arrow">→</span>
+    </button>
+
+    <button class="pago-opt" disabled title="Próximamente">
+      <span class="pago-opt-icon">💳</span>
+      <span class="pago-opt-txt">
+        <div class="pago-opt-nombre">Tarjeta de crédito</div>
+        <div class="pago-opt-detalle">Hasta 3 cuotas sin interés · Próximamente</div>
+      </span>
+      <span class="pago-opt-arrow">→</span>
+    </button>
+
     <button class="carrito-seguir" onclick="toggleCarrito()">← Seguir comprando</button>
+  </div>
+</div>
+
+<!-- MODAL TRANSFERENCIA -->
+<div class="pago-modal" id="modal-transferencia" onclick="if(event.target===this)window.cerrarModalTransferencia()">
+  <div class="pago-modal-card">
+    <div class="pago-modal-header">
+      <h3>💸 Pagar por transferencia</h3>
+      <button class="pago-modal-close" onclick="window.cerrarModalTransferencia()">×</button>
+    </div>
+    <div class="pago-modal-body">
+      <div class="pago-monto">
+        <div class="pago-monto-label">Monto a transferir</div>
+        <div class="pago-monto-valor" id="pago-monto-valor">$0</div>
+      </div>
+
+      <div class="pago-datos" id="pago-datos-list"></div>
+
+      <div class="pago-pasos">
+        <strong>Pasos:</strong>
+        <ol>
+          <li>Transferí el monto exacto al CVU de arriba</li>
+          <li>Guardá el comprobante</li>
+          <li>Mandanos el comprobante por WhatsApp y coordinamos envío</li>
+        </ol>
+      </div>
+
+      <a id="pago-wsp-btn" href="#" target="_blank" class="wsp-btn">
+        <svg class="wsp-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar comprobante por WhatsApp
+      </a>
+    </div>
   </div>
 </div>
 
@@ -1758,10 +2001,84 @@ function actualizarCarrito() {
   const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
   document.getElementById('carrito-total-precio').textContent = '$'+total.toLocaleString('es-AR');
   footer.style.display = 'block';
-  const resumen = carrito.map(c=>`• ${c.nombre} x${c.qty} = $${(c.precio*c.qty).toLocaleString('es-AR')}`).join('%0A');
-  const msg = `Hola! Quiero hacer el siguiente pedido:%0A%0A${resumen}%0A%0A*Total: $${total.toLocaleString('es-AR')}*%0A%0A¿Me pueden confirmar disponibilidad y forma de pago?`;
-  document.getElementById('wsp-pedido-btn').href = `https://wa.me/5492323221697?text=${msg}`;
 }
+
+// === DATOS DE TRANSFERENCIA (editar acá si cambian) ===
+const DATOS_TRANSFERENCIA = {
+  banco: 'Ualá',
+  cvu: '3840200500000029753390',
+  alias: '',  // Cuando tengas uno, poner acá, ej: 'CHINA.MATES.UALA'
+  titular: 'Natasha Bollini',
+  cuit: ''    // Cuando lo tengas, poner acá, ej: '27-12345678-4'
+};
+const WHATSAPP_NUMERO = '5492323221697';
+
+// === RENDERIZAR MODAL TRANSFERENCIA ===
+window.abrirModalTransferencia = function() {
+  if (carrito.length === 0) return;
+  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
+  document.getElementById('pago-monto-valor').textContent = '$' + total.toLocaleString('es-AR');
+
+  // Construir lista de datos (solo los que tienen valor)
+  const d = DATOS_TRANSFERENCIA;
+  const campos = [
+    { label: 'CVU', valor: d.cvu, copy: true },
+    { label: 'Alias', valor: d.alias, copy: true },
+    { label: 'Titular', valor: d.titular, copy: false },
+    { label: 'CUIT / DNI', valor: d.cuit, copy: true },
+    { label: 'Banco', valor: d.banco, copy: false }
+  ].filter(c => c.valor && c.valor.length > 0);
+
+  document.getElementById('pago-datos-list').innerHTML = campos.map((c, i) => `
+    <div class="pago-dato">
+      <div class="pago-dato-info">
+        <div class="pago-dato-label">${c.label}</div>
+        <div class="pago-dato-valor">${c.valor}</div>
+      </div>
+      ${c.copy ? `<button class="pago-copy-btn" onclick="window.copiarDato(this, '${c.valor.replace(/'/g, "\\'")}')">Copiar</button>` : ''}
+    </div>
+  `).join('');
+
+  // Armar link de WhatsApp con el pedido
+  const resumen = carrito.map(c=>`• ${c.nombre} x${c.qty} = $${(c.precio*c.qty).toLocaleString('es-AR')}`).join('%0A');
+  const msg = `Hola! Te paso el comprobante de la transferencia por mi pedido:%0A%0A${resumen}%0A%0A*Total: $${total.toLocaleString('es-AR')}*%0A%0AMétodo de pago: Transferencia a Ualá`;
+  document.getElementById('pago-wsp-btn').href = `https://wa.me/${WHATSAPP_NUMERO}?text=${msg}`;
+
+  document.getElementById('modal-transferencia').classList.add('open');
+};
+
+window.cerrarModalTransferencia = function() {
+  document.getElementById('modal-transferencia').classList.remove('open');
+};
+
+window.copiarDato = async function(btn, texto) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    const txtOriginal = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = txtOriginal;
+      btn.classList.remove('copied');
+    }, 1800);
+  } catch(e) {
+    // Fallback para navegadores viejos
+    const ta = document.createElement('textarea');
+    ta.value = texto; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1800);
+  }
+};
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('modal-transferencia')?.classList.contains('open')) {
+    window.cerrarModalTransferencia();
+  }
+});
 
 window.cambiarCantidad = function(id, delta) {
   const item = carrito.find(c=>c.id===id);
