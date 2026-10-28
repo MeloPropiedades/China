@@ -1510,7 +1510,10 @@
   /* Also make the pd-image not block click events on wrap */
   .pd-image { pointer-events: none; }
 
-  /* OCULTAR BADGE "POWERED BY NETLIFY" (CSS fallback) */
+  /* OCULTAR BADGE "POWERED BY NETLIFY" */
+  #nl-badge-frame,
+  iframe[id*="nl-badge" i],
+  iframe[id*="netlify" i],
   .netlify-badge,
   [class*="netlify-badge"],
   #netlify-badge,
@@ -2309,6 +2312,7 @@ window.mensajesMarquee = [];  // Expuesto global para que las cards de productos
         track.innerHTML = cfg.slides.map((s, i) => `
           <div class="carousel-slide ${i===0?'active':''}" style="background-image: url('${s.imgUrl}');">
             <div class="carousel-slide-content">
+              <img class="hero-logo slide-logo" alt="China Mates" />
               ${s.badge ? `<div class="hero-badge">${s.badge}</div>` : ''}
               <h1>${s.titulo || ''}</h1>
               ${s.sub ? `<p>${s.sub}</p>` : ''}
@@ -2709,31 +2713,53 @@ window.addEventListener('popstate', () => {
 
 </script>
 
-<!-- MATAR BADGE "POWERED BY NETLIFY" (si lo inyectan después de load) -->
+<!-- COPIAR SRC DEL LOGO DEL FOOTER A LOS LOGOS DE LOS SLIDES (evita duplicar la base64) -->
+<script>
+(function syncSlideLogos() {
+  function sync() {
+    const footer = document.querySelector('.footer-logo-img');
+    if (!footer || !footer.src) return;
+    document.querySelectorAll('.slide-logo').forEach(img => {
+      if (!img.src) img.src = footer.src;
+    });
+  }
+  sync();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', sync);
+  } else {
+    sync();
+  }
+  window.addEventListener('load', sync);
+  // Observer: si se re-renderizan los slides (loadSiteConfig), re-sincroniza
+  if (window.MutationObserver) {
+    const track = document.getElementById('carousel-track');
+    if (track) new MutationObserver(sync).observe(track, { childList: true, subtree: true });
+  }
+})();
+</script>
+
+<!-- MATAR BADGE "POWERED BY NETLIFY" (iframe #nl-badge-frame + fallbacks) -->
 <script>
 (function killNetlifyBadge() {
   function remove() {
-    const sel = 'a[href*="netlify"], [class*="netlify-badge"], [id*="netlify-badge"]';
-    document.querySelectorAll(sel).forEach(el => {
+    // El principal: iframe con id="nl-badge-frame" (confirmado en producción)
+    const iframe = document.getElementById('nl-badge-frame');
+    if (iframe) { try { iframe.remove(); } catch(e) { iframe.style.cssText = 'display:none!important;'; } }
+
+    // Fallbacks por si cambian el selector
+    document.querySelectorAll('iframe[id*="nl-badge"], iframe[id*="netlify"], a[href*="netlify"], [class*="netlify-badge"]').forEach(el => {
       try { el.remove(); } catch(e) { el.style.cssText = 'display:none!important;visibility:hidden!important;position:absolute!important;left:-9999px!important;'; }
     });
-    // También detectar por texto "Powered by Netlify" en cualquier anchor
-    document.querySelectorAll('a').forEach(a => {
-      const txt = (a.textContent || '').toLowerCase();
-      if (txt.includes('netlify') || txt.includes('powered by')) {
-        try { a.remove(); } catch(e) { a.style.display = 'none'; }
-      }
-    });
   }
-  // Correr al cargar
+  // Al cargar
   remove();
-  // Correr periódicamente los primeros 10 segundos (por si lo inyectan tarde)
+  // Repetir primeros 10s (por si lo inyectan tarde)
   let runs = 0;
   const int = setInterval(() => {
     remove();
     if (++runs > 20) clearInterval(int);
   }, 500);
-  // Observer para matarlo si lo re-inyectan después
+  // Observer continuo: si Netlify lo re-inyecta, lo mata al toque
   if (window.MutationObserver) {
     new MutationObserver(() => remove()).observe(document.body, { childList: true, subtree: true });
   }
