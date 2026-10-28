@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migrar fotos ImgBB → Supabase</title>
+<style>
+  :root {
+    --bg: #f5efe6;
+    --card: #fff;
+    --texto: #2a2522;
+    --suave: #6b645e;
+    --borde: #d4c9ba;
+    --primario: #6b5544;
+    --verde: #27ae60;
+    --rojo: #c0392b;
+    --naranja: #e67e22;
+    --gris: #95a5a6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    margin: 0; padding: 2rem 1rem;
+    background: var(--bg); color: var(--texto); min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { margin: 0 0 0.5rem; font-size: 1.6rem; }
+  .sub { color: var(--suave); margin-bottom: 2rem; font-size: 0.95rem; }
+  .card {
+    background: var(--card); border: 1px solid var(--borde);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .card h2 { margin: 0 0 1rem; font-size: 1.1rem; color: var(--primario); }
+  input, button {
+    font-family: inherit; font-size: 0.95rem;
+    padding: 10px 14px; border-radius: 8px; border: 1px solid var(--borde);
+  }
+  input { width: 100%; margin-bottom: 10px; background: #fafafa; }
+  button {
+    background: var(--primario); color: white; border: none;
+    cursor: pointer; font-weight: 500; transition: all 0.15s;
+  }
+  button:hover:not(:disabled) { background: #4a3a2d; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.secondary {
+    background: transparent; color: var(--primario); border: 1px solid var(--primario);
+  }
+  .warn {
+    background: #fff8e1; border: 1px solid #e0c678;
+    padding: 12px 16px; border-radius: 8px; font-size: 0.9rem;
+    margin-bottom: 1.5rem; color: #7a5e14;
+  }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1rem;
+  }
+  .stat {
+    background: #fafafa; border: 1px solid var(--borde);
+    padding: 14px; border-radius: 8px; text-align: center;
+  }
+  .stat-num { font-size: 1.6rem; font-weight: 600; }
+  .stat-label { font-size: 0.75rem; color: var(--suave); text-transform: uppercase; letter-spacing: 0.05em; }
+  .progress {
+    height: 8px; background: var(--borde); border-radius: 4px; overflow: hidden; margin-bottom: 1rem;
+  }
+  .progress-bar {
+    height: 100%; background: var(--primario); width: 0%;
+    transition: width 0.3s; border-radius: 4px;
+  }
+  .log {
+    background: #1a1613; color: #d4c9ba; font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.8rem; padding: 14px; border-radius: 8px;
+    max-height: 400px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-all; line-height: 1.5;
+  }
+  .log .ok { color: #6adf8f; }
+  .log .err { color: #ff7a6c; }
+  .log .warn { color: #ffc966; }
+  .log .info { color: #74b9ff; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔄 Migrar fotos: ImgBB → Supabase</h1>
+  <p class="sub">Script de una sola vez. Lee productos de Firebase, descarga fotos de ImgBB, las sube a Supabase y actualiza las URLs.</p>
+
+  <div class="warn">
+    ⚠️ <strong>Antes de empezar:</strong> abrí cualquier URL de <code>i.ibb.co/...</code> en otra pestaña. Si carga la imagen, podés migrar. Si da "service unavailable", esperá a que ImgBB vuelva.
+  </div>
+
+  <!-- LOGIN -->
+  <div class="card" id="login-card">
+    <h2>1. Ingresá con tu cuenta del admin</h2>
+    <input type="email" id="email" placeholder="Email" autocomplete="username"/>
+    <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password"/>
+    <button onclick="doLogin()">Ingresar</button>
+    <div id="login-error" style="color: var(--rojo); margin-top: 10px; font-size: 0.85rem;"></div>
+  </div>
+
+  <!-- APP (oculta hasta login) -->
+  <div id="app" style="display:none">
+    <div class="card">
+      <h2>2. Analizar</h2>
+      <p style="margin:0 0 1rem; color: var(--suave); font-size: 0.9rem;">
+        Lee todos los productos y cuenta cuántos tienen fotos que todavía están en ImgBB.
+      </p>
+      <button onclick="analizar()" id="btn-analizar">🔍 Analizar productos</button>
+    </div>
+
+    <div class="card" id="resumen-card" style="display:none">
+      <h2>Estado actual</h2>
+      <div class="stats">
+        <div class="stat"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total productos</div></div>
+        <div class="stat"><div class="stat-num" id="s-imgbb" style="color:var(--naranja)">—</div><div class="stat-label">En ImgBB (a migrar)</div></div>
+        <div class="stat"><div class="stat-num" id="s-supa" style="color:var(--verde)">—</div><div class="stat-label">Ya en Supabase</div></div>
+        <div class="stat"><div class="stat-num" id="s-sin" style="color:var(--gris)">—</div><div class="stat-label">Sin foto</div></div>
+      </div>
+      <div class="btn-row">
+        <button onclick="iniciarMigracion()" id="btn-migrar" disabled>🚀 Iniciar migración</button>
+        <button class="secondary" onclick="document.getElementById('log').innerHTML=''">Limpiar log</button>
+      </div>
+    </div>
+
+    <div class="card" id="progress-card" style="display:none">
+      <h2>Progreso</h2>
+      <div class="progress"><div class="progress-bar" id="pbar"></div></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num" id="p-ok" style="color:var(--verde)">0</div><div class="stat-label">OK</div></div>
+        <div class="stat"><div class="stat-num" id="p-fail" style="color:var(--rojo)">0</div><div class="stat-label">Fallidos</div></div>
+        <div class="stat"><div class="stat-num" id="p-pend" style="color:var(--gris)">0</div><div class="stat-label">Pendientes</div></div>
+        <div class="stat"><div class="stat-num" id="p-total">0</div><div class="stat-label">Total</div></div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// === CONFIG (idéntica al admin de producción) ===
+const SUPABASE_URL = 'https://tdzayysbbraqfydudlsg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_L1qGEQzCkCGnKyb-70NmGw_SCGhhYko';
+const SUPABASE_BUCKET = 'productos';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAaTuVvGPfL7o7x1JYHZin6Pfhxbo52vOw",
+  authDomain: "chinamates-bb8d8.firebaseapp.com",
+  projectId: "chinamates-bb8d8",
+  storageBucket: "chinamates-bb8d8.firebasestorage.app",
+  messagingSenderId: "762019877688",
+  appId: "1:762019877688:web:5b068111ec8e76bc4067cd"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let productosParaMigrar = [];
+
+// === UTILIDADES DE LOG ===
+function log(msg, tipo = 'info') {
+  const el = document.getElementById('log');
+  if (!el) return;
+  const ts = new Date().toLocaleTimeString('es-AR');
+  const line = document.createElement('div');
+  line.className = tipo;
+  line.textContent = `[${ts}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+// === DETECTAR URL DE IMGBB ===
+function esDeImgBB(url) {
+  if (!url || typeof url !== 'string') return false;
+  return url.includes('ibb.co') || url.includes('imgbb.com');
+}
+
+// === DESCARGAR BLOB DESDE URL (ImgBB) ===
+async function descargarImagen(url) {
+  const resp = await fetch(url, { mode: 'cors' });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} al descargar`);
+  const blob = await resp.blob();
+  if (blob.size === 0) throw new Error('Blob vacío');
+  return blob;
+}
+
+// === COMPRIMIR IMAGEN (si falta thumb) ===
+async function comprimirImagen(blob, maxWidth, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob falló')), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo cargar imagen')); };
+    img.src = url;
+  });
+}
+
+// === SUBIR A SUPABASE ===
+function nombreUnico(sufijo) {
+  const ts = Date.now();
+  const rand = Math.random().toString(36).substring(2, 10);
+  return `${ts}-${rand}-${sufijo}.jpg`;
+}
+
+async function subirASupabase(blob, filename) {
+  const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${filename}`;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'image/jpeg',
+      'x-upsert': 'true'
+    },
+    body: blob
+  });
+  if (!resp.ok) {
+    const err = await resp.text().catch(() => '');
+    throw new Error(`Supabase ${resp.status}: ${err.slice(0, 150)}`);
+  }
+  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`;
+}
+
+// === MIGRAR UN PRODUCTO ===
+async function migrarProducto(prod) {
+  const nombre = prod.nombre || prod.id;
+  log(`→ ${nombre}`, 'info');
+
+  // 1. Descargar la full de ImgBB
+  let fullBlob;
+  try {
+    fullBlob = await descargarImagen(prod.imgUrl);
+    log(`  ✓ Descargada full (${(fullBlob.size / 1024).toFixed(0)} KB)`, 'ok');
+  } catch (e) {
+    throw new Error(`descarga full: ${e.message}`);
+  }
+
+  // 2. Thumb: si existe en ImgBB la descargo, si no la genero comprimiendo la full
+  let thumbBlob;
+  if (prod.imgUrlThumb && esDeImgBB(prod.imgUrlThumb) && prod.imgUrlThumb !== prod.imgUrl) {
+    try {
+      thumbBlob = await descargarImagen(prod.imgUrlThumb);
+      log(`  ✓ Descargada thumb (${(thumbBlob.size / 1024).toFixed(0)} KB)`, 'ok');
+    } catch (e) {
+      log(`  ⚠ Thumb falló (${e.message}), genero desde full`, 'warn');
+      thumbBlob = await comprimirImagen(fullBlob, 600, 0.78);
+    }
+  } else {
+    thumbBlob = await comprimirImagen(fullBlob, 600, 0.78);
+    log(`  ✓ Thumb generado desde full (${(thumbBlob.size / 1024).toFixed(0)} KB)`, 'info');
+  }
+
+  // 3. Subir ambos a Supabase (en paralelo)
+  const fullName = nombreUnico('full');
+  const thumbName = nombreUnico('thumb');
+  const [fullUrl, thumbUrl] = await Promise.all([
+    subirASupabase(fullBlob, fullName),
+    subirASupabase(thumbBlob, thumbName)
+  ]);
+  log(`  ✓ Subidas a Supabase`, 'ok');
+
+  // 4. Actualizar Firestore
+  await updateDoc(doc(db, 'productos', prod.id), {
+    imgUrl: fullUrl,
+    imgUrlThumb: thumbUrl,
+    migratedAt: serverTimestamp()
+  });
+  log(`  ✓ Firestore actualizado`, 'ok');
+}
+
+// === FLUJO PRINCIPAL ===
+window.doLogin = async function() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    errEl.textContent = 'Error: ' + (e.code || e.message);
+  }
+};
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('login-card').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    log(`Logueado como ${user.email}`, 'ok');
+  }
+});
+
+window.analizar = async function() {
+  const btn = document.getElementById('btn-analizar');
+  btn.disabled = true;
+  btn.textContent = 'Analizando...';
+  try {
+    const snap = await getDocs(collection(db, 'productos'));
+    const todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const enImgBB = todos.filter(p => esDeImgBB(p.imgUrl));
+    const enSupa = todos.filter(p => p.imgUrl && p.imgUrl.includes('supabase.co'));
+    const sinFoto = todos.filter(p => !p.imgUrl);
+
+    document.getElementById('s-total').textContent = todos.length;
+    document.getElementById('s-imgbb').textContent = enImgBB.length;
+    document.getElementById('s-supa').textContent = enSupa.length;
+    document.getElementById('s-sin').textContent = sinFoto.length;
+
+    productosParaMigrar = enImgBB;
+
+    document.getElementById('resumen-card').style.display = 'block';
+    document.getElementById('btn-migrar').disabled = enImgBB.length === 0;
+    btn.textContent = '🔄 Re-analizar';
+    btn.disabled = false;
+
+    if (enImgBB.length === 0) {
+      alert('No hay productos con fotos de ImgBB. Nada para migrar ✓');
+    }
+  } catch (e) {
+    btn.textContent = '🔍 Analizar productos';
+    btn.disabled = false;
+    alert('Error al leer productos: ' + e.message);
+  }
+};
+
+window.iniciarMigracion = async function() {
+  if (!productosParaMigrar.length) return;
+  if (!confirm(`Vas a migrar ${productosParaMigrar.length} productos. ¿Continuar?\n\nTip: dejá esta pestaña abierta y no la cierres hasta que termine.`)) return;
+
+  const btn = document.getElementById('btn-migrar');
+  btn.disabled = true;
+  document.getElementById('btn-analizar').disabled = true;
+  document.getElementById('progress-card').style.display = 'block';
+  document.getElementById('p-total').textContent = productosParaMigrar.length;
+  document.getElementById('p-pend').textContent = productosParaMigrar.length;
+  document.getElementById('p-ok').textContent = '0';
+  document.getElementById('p-fail').textContent = '0';
+  document.getElementById('log').innerHTML = '';
+  log(`== Iniciando migración de ${productosParaMigrar.length} productos ==`, 'info');
+
+  let ok = 0, fail = 0;
+  const fallidos = [];
+
+  for (let i = 0; i < productosParaMigrar.length; i++) {
+    const prod = productosParaMigrar[i];
+    try {
+      await migrarProducto(prod);
+      ok++;
+    } catch (e) {
+      fail++;
+      fallidos.push({ nombre: prod.nombre || prod.id, id: prod.id, motivo: e.message });
+      log(`  ✗ FALLÓ: ${e.message}`, 'err');
+    }
+    const pct = Math.round(((i + 1) / productosParaMigrar.length) * 100);
+    document.getElementById('pbar').style.width = pct + '%';
+    document.getElementById('p-ok').textContent = ok;
+    document.getElementById('p-fail').textContent = fail;
+    document.getElementById('p-pend').textContent = productosParaMigrar.length - (i + 1);
+  }
+
+  log(`== Terminado: ${ok} OK, ${fail} fallidos ==`, fail === 0 ? 'ok' : 'warn');
+
+  if (fallidos.length) {
+    log(`\nProductos a re-subir manualmente desde el admin:`, 'warn');
+    fallidos.forEach(f => log(`  - ${f.nombre} (motivo: ${f.motivo})`, 'err'));
+  }
+
+  btn.textContent = 'Migración completa';
+  document.getElementById('btn-analizar').disabled = false;
+};
+</script>
+</body>
+</html>
