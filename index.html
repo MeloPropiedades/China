@@ -2165,10 +2165,10 @@ window.confirmarPedido = async function() {
     try { localStorage.setItem('chinamates_carrito', JSON.stringify(carrito)); } catch(e) {}
     actualizarCarrito();
 
-    // 4. Armar mensaje WhatsApp con el ID
-    const resumen = itemsSnapshot.map(i => `• ${i.nombre} x${i.qty} = $${(i.precio*i.qty).toLocaleString('es-AR')}`).join('%0A');
-    const msg = `Hola! Te paso el comprobante de mi pedido:%0A%0A*Pedido #${pedidoCorto}*%0A%0A${resumen}%0A%0A*Total: $${total.toLocaleString('es-AR')}*%0A%0AMétodo: Transferencia a Ualá`;
-    const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${msg}`;
+    // 4. Armar mensaje WhatsApp con el ID (encodeURIComponent para que # y otros no rompan la URL)
+    const resumen = itemsSnapshot.map(i => `• ${i.nombre} x${i.qty} = $${(i.precio*i.qty).toLocaleString('es-AR')}`).join('\n');
+    const msg = `Hola! Te paso el comprobante de mi pedido:\n\n*Pedido #${pedidoCorto}*\n\n${resumen}\n\n*Total: $${total.toLocaleString('es-AR')}*\n\nMétodo: Transferencia a Ualá`;
+    const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`;
 
     // 5. Cerrar modal y abrir WhatsApp
     window.cerrarModalTransferencia();
