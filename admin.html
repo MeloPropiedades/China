@@ -318,10 +318,13 @@
     border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
     position: relative;
     display: flex;
     flex-direction: column;
+    /* content-visibility: skipea el render de cards fuera de viewport */
+    content-visibility: auto;
+    contain-intrinsic-size: 0 340px;
   }
   .prod-card:hover {
     border-color: var(--tierra-claro);
@@ -1180,7 +1183,7 @@
     </div>
 
     <div class="admin-filters">
-      <input type="text" class="admin-search" id="admin-search" placeholder="🔍 Buscar producto..." oninput="renderCategorias()" />
+      <input type="text" class="admin-search" id="admin-search" placeholder="🔍 Buscar producto..." oninput="window.debouncedRender()" />
       <select class="admin-select" id="admin-filter-stock" onchange="renderCategorias()">
         <option value="">Stock: Todos</option>
         <option value="ok">Con stock</option>
@@ -1703,6 +1706,13 @@ function filtrarProductos(lista) {
   });
 }
 
+// Debounce para el buscador — evita re-render en cada tecla
+let _renderDebounceTimer = null;
+window.debouncedRender = function() {
+  clearTimeout(_renderDebounceTimer);
+  _renderDebounceTimer = setTimeout(() => window.renderCategorias(), 180);
+};
+
 window.renderCategorias = function() {
   document.getElementById('tabla-loading').style.display = 'none';
   const container = document.getElementById('categorias-container');
@@ -1750,8 +1760,10 @@ window.renderCategorias = function() {
 function renderProductCard(p) {
   const nombreEsc = (p.nombre || '').replace(/'/g, "\\'");
   const isSelected = productosSeleccionados.has(p.id);
-  const imgHtml = p.imgUrl
-    ? `<img class="prod-card-img" src="${p.imgUrl}" alt="${p.nombre}" loading="lazy" />`
+  // Usar thumb (60KB) en vez de full (200KB) — la card es chica, no necesita calidad full
+  const imgSrc = p.imgUrlThumb || p.imgUrl;
+  const imgHtml = imgSrc
+    ? `<img class="prod-card-img" src="${imgSrc}" alt="${p.nombre}" loading="lazy" decoding="async" />`
     : `<div class="prod-card-img-placeholder">${p.emoji||'🧉'}</div>`;
 
   let stockBadge = '';
