@@ -1659,7 +1659,6 @@
         <p>Mates artesanales, materas, yerberas, bombillas y todo lo que necesitás para vivir el ritual del mate como una experiencia.</p>
         <div class="hero-btns">
           <a href="#catalogo" class="btn-primary">Ver catálogo</a>
-          <a href="https://wa.me/5492323221697?text=Hola!%20Vi%20su%20tienda%20online%20y%20quisiera%20consultar" class="btn-secondary" target="_blank">Consultar</a>
         </div>
       </div>
     </div>
@@ -1682,7 +1681,6 @@
         <p>O pagá en 3 cuotas sin interés con tarjeta de crédito. Envíos a todo el país.</p>
         <div class="hero-btns">
           <a href="#catalogo" class="btn-primary">Comprar ahora</a>
-          <a href="https://wa.me/5492323221697" class="btn-secondary" target="_blank">Consultar</a>
         </div>
       </div>
     </div>
@@ -1695,7 +1693,6 @@
         <p>Tradición en cada ronda</p>
         <div class="hero-btns">
           <a href="#" onclick="event.preventDefault(); window.toggleMegaMenu(); return false;" class="btn-primary">Ver productos</a>
-          <a href="https://wa.me/5492323221697" target="_blank" class="btn-secondary">Consultar</a>
         </div>
       </div>
     </div>
@@ -1706,7 +1703,6 @@
         <p>Elegancia en cada detalle</p>
         <div class="hero-btns">
           <a href="#" onclick="event.preventDefault(); window.toggleMegaMenu(); return false;" class="btn-primary">Ver productos</a>
-          <a href="https://wa.me/5492323221697" target="_blank" class="btn-secondary">Consultar</a>
         </div>
       </div>
     </div>
@@ -1717,7 +1713,6 @@
         <p>Para todas tus aventuras</p>
         <div class="hero-btns">
           <a href="#" onclick="event.preventDefault(); window.toggleMegaMenu(); return false;" class="btn-primary">Ver productos</a>
-          <a href="https://wa.me/5492323221697" target="_blank" class="btn-secondary">Consultar</a>
         </div>
       </div>
     </div>
@@ -1728,7 +1723,6 @@
         <p>Sabor que nos une</p>
         <div class="hero-btns">
           <a href="#" onclick="event.preventDefault(); window.toggleMegaMenu(); return false;" class="btn-primary">Ver productos</a>
-          <a href="https://wa.me/5492323221697" target="_blank" class="btn-secondary">Consultar</a>
         </div>
       </div>
     </div>
@@ -1910,10 +1904,11 @@
         </ol>
       </div>
 
-      <a id="pago-wsp-btn" href="#" target="_blank" class="wsp-btn">
+      <button id="pago-confirmar-btn" class="wsp-btn" onclick="window.confirmarPedido()" style="border:none;cursor:pointer;">
         <svg class="wsp-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Enviar comprobante por WhatsApp
-      </a>
+        <span id="pago-confirmar-txt">Confirmar y enviar comprobante por WhatsApp</span>
+      </button>
+      <div id="pago-confirmar-error" style="margin-top:10px;color:#c0392b;font-size:0.85rem;text-align:center;display:none;"></div>
     </div>
   </div>
 </div>
@@ -1933,7 +1928,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, doc, getDoc, addDoc, runTransaction, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAaTuVvGPfL7o7x1JYHZin6Pfhxbo52vOw",
@@ -1946,6 +1941,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Helper: stock REAL disponible = total menos lo que está reservado por carritos activos
+function stockDisp(p) {
+  return Math.max(0, Number(p.stock ?? 0) - Number(p.stockReservado ?? 0));
+}
+window.stockDisp = stockDisp;
 
 let todosLosProductos = [];
 window.todosLosProductos = todosLosProductos;
@@ -1969,8 +1970,8 @@ function renderProductos(lista) {
           : `<div class="producto-img-placeholder"><span style="font-size:3.5rem">${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`
         }
         ${p.badge ? `<div class="prod-badge ${['Nuevo','Importada','Orgánica'].includes(p.badge)?'oferta':''}">${p.badge}</div>` : ''}
-        ${(p.stock===0) ? `<div class="prod-badge" style="background:#c0392b;right:12px;left:auto;">Sin stock</div>` : ''}
-        ${(p.stock>0&&p.stock<=3) ? `<div class="prod-badge" style="background:#e67e22;right:12px;left:auto;">¡Últimas ${p.stock}!</div>` : ''}
+        ${(stockDisp(p)===0) ? `<div class="prod-badge" style="background:#c0392b;right:12px;left:auto;">Sin stock</div>` : ''}
+        ${(stockDisp(p)>0&&stockDisp(p)<=3) ? `<div class="prod-badge" style="background:#e67e22;right:12px;left:auto;">¡Últimas ${stockDisp(p)}!</div>` : ''}
       </div>
       <div class="producto-info">
         <div class="producto-cat">${CATS[p.cat]||p.cat}</div>
@@ -1982,7 +1983,7 @@ function renderProductos(lista) {
             <span class="producto-precio">$${Number(p.precio).toLocaleString('es-AR')}</span>
           </div>
           <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito"
-            ${p.stock===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
+            ${stockDisp(p)===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
         </div>
         ${(window.mensajesMarquee && window.mensajesMarquee[0]) ? `<div class="producto-pie">${window.mensajesMarquee[0]}</div>` : ''}
       </div>
@@ -2004,11 +2005,13 @@ window.filtrar = function(cat, btn) {
 
 window.agregarAlCarrito = function(id) {
   const prod = todosLosProductos.find(p => p.id === id);
-  if (!prod || prod.stock === 0) return;
+  if (!prod) return;
+  const disp = stockDisp(prod);
+  if (disp === 0) { showToastTienda('Sin stock disponible'); return; }
   const existing = carrito.find(c => c.id === id);
   const enCarrito = existing ? existing.qty : 0;
-  if (prod.stock != null && enCarrito >= prod.stock) {
-    showToastTienda(`Solo hay ${prod.stock} unidades disponibles`); return;
+  if (enCarrito >= disp) {
+    showToastTienda(`Solo hay ${disp} unidad${disp===1?'':'es'} disponible${disp===1?'':'s'}`); return;
   }
   if (existing) existing.qty++;
   else carrito.push({...prod, qty:1});
@@ -2082,12 +2085,99 @@ window.abrirModalTransferencia = function() {
     </div>
   `).join('');
 
-  // Armar link de WhatsApp con el pedido
-  const resumen = carrito.map(c=>`• ${c.nombre} x${c.qty} = $${(c.precio*c.qty).toLocaleString('es-AR')}`).join('%0A');
-  const msg = `Hola! Te paso el comprobante de la transferencia por mi pedido:%0A%0A${resumen}%0A%0A*Total: $${total.toLocaleString('es-AR')}*%0A%0AMétodo de pago: Transferencia a Ualá`;
-  document.getElementById('pago-wsp-btn').href = `https://wa.me/${WHATSAPP_NUMERO}?text=${msg}`;
+  // Resetear estado del botón confirmar
+  const btn = document.getElementById('pago-confirmar-btn');
+  const txt = document.getElementById('pago-confirmar-txt');
+  const err = document.getElementById('pago-confirmar-error');
+  if (btn) { btn.disabled = false; }
+  if (txt) { txt.textContent = 'Confirmar y enviar comprobante por WhatsApp'; }
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
 
   document.getElementById('modal-transferencia').classList.add('open');
+};
+
+// === CONFIRMAR PEDIDO: crea el pedido en Firebase, reserva stock, abre WhatsApp ===
+window.confirmarPedido = async function() {
+  if (carrito.length === 0) return;
+  const btn = document.getElementById('pago-confirmar-btn');
+  const txt = document.getElementById('pago-confirmar-txt');
+  const err = document.getElementById('pago-confirmar-error');
+  const mostrarError = (msg) => { err.textContent = msg; err.style.display = 'block'; btn.disabled = false; txt.textContent = 'Reintentar'; };
+
+  btn.disabled = true;
+  txt.textContent = 'Reservando tu pedido…';
+  err.style.display = 'none';
+
+  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
+  const itemsSnapshot = carrito.map(c => ({
+    productoId: c.id,
+    nombre: c.nombre,
+    precio: c.precio,
+    qty: c.qty,
+    color: c.color || null
+  }));
+
+  try {
+    // 1. Transacción: verificar stock disponible y reservarlo
+    await runTransaction(db, async (tx) => {
+      // Leer todos los productos (parte read de la transacción)
+      const prodDocs = [];
+      for (const item of itemsSnapshot) {
+        const ref = doc(db, 'productos', item.productoId);
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error(`"${item.nombre}" ya no está disponible`);
+        prodDocs.push({ ref, data: snap.data(), item });
+      }
+      // Validar stock disponible = stock - stockReservado
+      for (const { data, item } of prodDocs) {
+        const stock = Number(data.stock ?? 0);
+        const reservado = Number(data.stockReservado ?? 0);
+        const disponible = stock - reservado;
+        if (disponible < item.qty) {
+          throw new Error(`"${item.nombre}" solo tiene ${Math.max(0, disponible)} disponible${disponible===1?'':'s'} (vos pediste ${item.qty})`);
+        }
+      }
+      // Reservar: incrementar stockReservado
+      for (const { ref, data, item } of prodDocs) {
+        const reservadoActual = Number(data.stockReservado ?? 0);
+        tx.update(ref, {
+          stockReservado: reservadoActual + item.qty
+        });
+      }
+    });
+
+    // 2. Crear el pedido en Firebase
+    txt.textContent = 'Creando pedido…';
+    const reservadoHasta = Timestamp.fromMillis(Date.now() + 30 * 60 * 1000); // 30 min
+    const pedidoRef = await addDoc(collection(db, 'pedidos'), {
+      items: itemsSnapshot,
+      total,
+      estado: 'reservado',
+      metodoPago: 'transferencia',
+      reservadoHasta,
+      createdAt: serverTimestamp()
+    });
+    const pedidoId = pedidoRef.id;
+    const pedidoCorto = pedidoId.slice(-6).toUpperCase();
+
+    // 3. Vaciar carrito local
+    carrito = [];
+    try { localStorage.setItem('chinamates_carrito', JSON.stringify(carrito)); } catch(e) {}
+    actualizarCarrito();
+
+    // 4. Armar mensaje WhatsApp con el ID
+    const resumen = itemsSnapshot.map(i => `• ${i.nombre} x${i.qty} = $${(i.precio*i.qty).toLocaleString('es-AR')}`).join('%0A');
+    const msg = `Hola! Te paso el comprobante de mi pedido:%0A%0A*Pedido #${pedidoCorto}*%0A%0A${resumen}%0A%0A*Total: $${total.toLocaleString('es-AR')}*%0A%0AMétodo: Transferencia a Ualá`;
+    const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${msg}`;
+
+    // 5. Cerrar modal y abrir WhatsApp
+    window.cerrarModalTransferencia();
+    setTimeout(() => { window.open(url, '_blank'); }, 150);
+
+  } catch (e) {
+    console.error('[Pedido] Error:', e);
+    mostrarError('No se pudo reservar el pedido: ' + (e.message || 'error desconocido'));
+  }
 };
 
 window.cerrarModalTransferencia = function() {
@@ -2126,6 +2216,13 @@ document.addEventListener('keydown', e => {
 window.cambiarCantidad = function(id, delta) {
   const item = carrito.find(c=>c.id===id);
   if (!item) return;
+  if (delta > 0) {
+    const prod = todosLosProductos.find(p => p.id === id);
+    const disp = prod ? stockDisp(prod) : 0;
+    if (item.qty >= disp) {
+      showToastTienda(`Solo hay ${disp} unidad${disp===1?'':'es'} disponible${disp===1?'':'s'}`); return;
+    }
+  }
   item.qty += delta;
   if (item.qty <= 0) carrito = carrito.filter(c=>c.id!==id);
   actualizarCarrito();
@@ -2318,7 +2415,6 @@ window.mensajesMarquee = [];  // Expuesto global para que las cards de productos
               ${s.sub ? `<p>${s.sub}</p>` : ''}
               <div class="hero-btns">
                 <a href="#" onclick="event.preventDefault();window.toggleMegaMenu&&window.toggleMegaMenu();return false;" class="btn-primary">Ver productos</a>
-                <a href="https://wa.me/5492323221697" target="_blank" class="btn-secondary">Consultar</a>
               </div>
             </div>
           </div>
@@ -2439,8 +2535,8 @@ window.abrirVista = function(cat, titulo) {
         <div style="position:relative">
           ${imgHtml}
           ${p.badge ? `<div class="prod-badge ${['Nuevo','Importada','Orgánica'].includes(p.badge)?'oferta':''}">${p.badge}</div>` : ''}
-          ${(p.stock===0) ? `<div class="prod-badge" style="background:#c0392b;right:12px;left:auto;">Sin stock</div>` : ''}
-          ${(p.stock>0&&p.stock<=3) ? `<div class="prod-badge" style="background:#e67e22;right:12px;left:auto;">¡Últimas ${p.stock}!</div>` : ''}
+          ${(stockDisp(p)===0) ? `<div class="prod-badge" style="background:#c0392b;right:12px;left:auto;">Sin stock</div>` : ''}
+          ${(stockDisp(p)>0&&stockDisp(p)<=3) ? `<div class="prod-badge" style="background:#e67e22;right:12px;left:auto;">¡Últimas ${stockDisp(p)}!</div>` : ''}
         </div>
         <div class="producto-info">
           <div class="producto-cat">${CATS[p.cat]||p.cat}</div>
@@ -2451,7 +2547,7 @@ window.abrirVista = function(cat, titulo) {
               ${p.precioOriginal ? `<span class="precio-original">$${Number(p.precioOriginal).toLocaleString('es-AR')}</span>` : ''}
               <span class="producto-precio">$${Number(p.precio).toLocaleString('es-AR')}</span>
             </div>
-            <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito" ${p.stock===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
+            <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito" ${stockDisp(p)===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
           </div>
           ${(window.mensajesMarquee && window.mensajesMarquee[0]) ? `<div class="producto-pie">${window.mensajesMarquee[0]}</div>` : ''}
         </div>
@@ -2499,8 +2595,8 @@ function renderDestacado(gridId, tag, textoVacio) {
       <div style="position:relative">
         ${imgHtml}
         ${p.badge ? `<div class="prod-badge ${['Nuevo','Importada','Orgánica'].includes(p.badge)?'oferta':''}">${p.badge}</div>` : ''}
-        ${(p.stock===0) ? `<div class="prod-badge" style="background:#c0392b;right:12px;left:auto;">Sin stock</div>` : ''}
-        ${(p.stock>0&&p.stock<=3) ? `<div class="prod-badge" style="background:#e67e22;right:12px;left:auto;">¡Últimas ${p.stock}!</div>` : ''}
+        ${(stockDisp(p)===0) ? `<div class="prod-badge" style="background:#c0392b;right:12px;left:auto;">Sin stock</div>` : ''}
+        ${(stockDisp(p)>0&&stockDisp(p)<=3) ? `<div class="prod-badge" style="background:#e67e22;right:12px;left:auto;">¡Últimas ${stockDisp(p)}!</div>` : ''}
       </div>
       <div class="producto-info">
         <div class="producto-cat">${CATS[p.cat]||p.cat}</div>
@@ -2511,7 +2607,7 @@ function renderDestacado(gridId, tag, textoVacio) {
             ${p.precioOriginal ? `<span class="precio-original">$${Number(p.precioOriginal).toLocaleString('es-AR')}</span>` : ''}
             <span class="producto-precio">$${Number(p.precio).toLocaleString('es-AR')}</span>
           </div>
-          <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito" ${p.stock===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
+          <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito" ${stockDisp(p)===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
         </div>
         ${(window.mensajesMarquee && window.mensajesMarquee[0]) ? `<div class="producto-pie">${window.mensajesMarquee[0]}</div>` : ''}
       </div>
@@ -2571,16 +2667,17 @@ function renderProductoDetalle() {
 
   let badgeHtml = '';
   if (p.badge) badgeHtml += `<div class="pd-badge-img ${['Nuevo','Importada','Orgánica'].includes(p.badge)?'oferta':''}">${p.badge}</div>`;
-  if (p.stock === 0) badgeHtml = `<div class="pd-badge-img" style="background:#c0392b;">Sin stock</div>`;
+  if (stockDisp(p) === 0) badgeHtml = `<div class="pd-badge-img" style="background:#c0392b;">Sin stock</div>`;
 
   const imgHtml = p.imgUrl
     ? `<img src="${p.imgUrl}" alt="${p.nombre}" class="pd-image" style="object-position:${p.imgPosX??50}% ${p.imgPosY??50}%;transform:scale(${(p.imgZoom??100)/100});transform-origin:${p.imgPosX??50}% ${p.imgPosY??50}%"/>`
     : `<div class="pd-image-placeholder"><span>${p.emoji||'🧉'}</span><span>${p.nombre}</span></div>`;
 
   let stockHtml = '';
-  if (p.stock === 0) stockHtml = `<div class="pd-stock out"><span class="pd-stock-dot"></span>Sin stock</div>`;
-  else if (p.stock > 0 && p.stock <= 3) stockHtml = `<div class="pd-stock low"><span class="pd-stock-dot"></span>Últimas ${p.stock} unidades</div>`;
-  else if (p.stock > 3) stockHtml = `<div class="pd-stock ok"><span class="pd-stock-dot"></span>Disponible — ${p.stock} unidades</div>`;
+  const _sd = stockDisp(p);
+  if (_sd === 0) stockHtml = `<div class="pd-stock out"><span class="pd-stock-dot"></span>Sin stock disponible</div>`;
+  else if (_sd > 0 && _sd <= 3) stockHtml = `<div class="pd-stock low"><span class="pd-stock-dot"></span>Últimas ${_sd} unidades</div>`;
+  else if (_sd > 3) stockHtml = `<div class="pd-stock ok"><span class="pd-stock-dot"></span>Disponible — ${_sd} unidades</div>`;
 
   let coloresHtml = '';
   if (p.colores && p.colores.length > 0) {
@@ -2629,8 +2726,8 @@ function renderProductoDetalle() {
           <input type="text" class="pd-qty-input" id="pd-qty-input" value="${cantidadProducto}" readonly />
           <button class="pd-qty-btn" onclick="window.cambiarCantidadPD(1)">+</button>
         </div>
-        <button class="pd-add-btn" onclick="window.agregarDetalle()" ${p.stock === 0 ? 'disabled' : ''}>
-          ${p.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+        <button class="pd-add-btn" onclick="window.agregarDetalle()" ${stockDisp(p) === 0 ? 'disabled' : ''}>
+          ${stockDisp(p) === 0 ? 'Sin stock' : 'Agregar al carrito'}
         </button>
       </div>
       <div class="pd-meta">
@@ -2655,7 +2752,7 @@ window.cambiarCantidadPD = function(delta) {
 };
 
 window.agregarDetalle = function() {
-  if (!productoActual || productoActual.stock === 0) return;
+  if (!productoActual || stockDisp(productoActual) === 0) return;
   // Add color info if applicable
   const prodConColor = colorSeleccionado
     ? { ...productoActual, colorSeleccionado: colorSeleccionado.nombre, nombre: productoActual.nombre + ' — ' + colorSeleccionado.nombre, id: productoActual.id + '_' + colorSeleccionado.nombre.replace(/\s/g,'') }

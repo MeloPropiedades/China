@@ -598,7 +598,180 @@
   }
 
 
-    /* SITE CONFIG SECTION */
+      /* PEDIDOS SECTION */
+  .pedidos-section {
+    margin-top: 3rem;
+    padding-top: 3rem;
+    border-top: 2px dashed var(--borde);
+  }
+  .pedidos-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--borde);
+    flex-wrap: wrap;
+  }
+  .pedidos-tab {
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--tierra-medio);
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+    position: relative;
+    top: 1px;
+  }
+  .pedidos-tab:hover { color: var(--tierra-oscuro); }
+  .pedidos-tab.active {
+    color: var(--tierra-oscuro);
+    border-bottom-color: var(--tierra-oscuro);
+    font-weight: 500;
+  }
+  .pedidos-tab-count {
+    background: var(--beige-claro);
+    color: var(--tierra-oscuro);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    min-width: 20px;
+    text-align: center;
+  }
+  .pedidos-tab.active .pedidos-tab-count {
+    background: var(--tierra-oscuro);
+    color: var(--blanco);
+  }
+
+  .pedido-card {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: start;
+  }
+  .pedido-card.vencido { border-left: 4px solid #e74c3c; }
+  .pedido-card.por-vencer { border-left: 4px solid #e67e22; }
+
+  .pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .pedido-id {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    color: var(--tierra-medio);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pedido-id strong { color: var(--tierra-oscuro); font-weight: 600; }
+  .pedido-fecha {
+    font-size: 0.75rem;
+    color: var(--tierra-medio);
+  }
+  .pedido-countdown {
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: #fef4e6;
+    color: #c17a1a;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pedido-countdown.urgente { background: #fde6e4; color: #c0392b; }
+  .pedido-countdown.ok { background: #e8f4ec; color: #1e7e3a; }
+
+  .pedido-items {
+    margin: 10px 0;
+    padding: 10px 0;
+    border-top: 1px dashed var(--borde);
+    border-bottom: 1px dashed var(--borde);
+  }
+  .pedido-item-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    padding: 3px 0;
+    color: var(--tierra-oscuro);
+  }
+  .pedido-item-row .cant {
+    color: var(--tierra-medio);
+    margin-right: 8px;
+    font-size: 0.82rem;
+  }
+  .pedido-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+  }
+  .pedido-total-row span { font-size: 0.78rem; color: var(--tierra-medio); text-transform: uppercase; letter-spacing: 0.08em; }
+  .pedido-total-row strong { font-size: 1.15rem; color: var(--tierra-oscuro); }
+
+  .pedido-estado-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .pedido-estado-badge.reservado { background: #fef4e6; color: #c17a1a; }
+  .pedido-estado-badge.confirmado { background: #e8f4ec; color: #1e7e3a; }
+  .pedido-estado-badge.cancelado { background: #f5f5f5; color: #6b6b6b; }
+  .pedido-estado-badge.expirado { background: #fde6e4; color: #c0392b; }
+
+  .pedido-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 150px;
+  }
+  .pedido-btn {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .pedido-btn.confirmar { background: var(--verde-salvia, #4a7c59); color: var(--blanco); }
+  .pedido-btn.confirmar:hover { background: #27ae60; transform: translateY(-1px); }
+  .pedido-btn.cancelar { background: transparent; color: var(--tierra-medio); border: 1px solid var(--borde); }
+  .pedido-btn.cancelar:hover { border-color: #c0392b; color: #c0392b; }
+  .pedido-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  @media (max-width: 700px) {
+    .pedido-card { grid-template-columns: 1fr; }
+    .pedido-acciones { flex-direction: row; min-width: 0; }
+    .pedido-acciones .pedido-btn { flex: 1; }
+  }
+
+  /* SITE CONFIG SECTION */
   .site-config {
     margin-top: 3rem;
     padding-top: 3rem;
@@ -1060,6 +1233,30 @@
       </div>
     </div>
 
+    <!-- PEDIDOS -->
+    <div class="pedidos-section" id="pedidos-section">
+      <div class="section-header">
+        <div class="section-title">🧾 Pedidos</div>
+        <div style="font-size:0.78rem;color:var(--tierra-medio);">
+          <span id="pedidos-count-badge">—</span> pendientes
+        </div>
+      </div>
+      <p class="config-info-box">
+        ℹ️ Cuando un cliente aprieta "Enviar comprobante" en la tienda, su pedido aparece acá como <strong>Reservado</strong>. Al recibir el comprobante por WhatsApp, apretá <strong>Confirmar venta</strong> para descontar el stock. Si el cliente no paga en 30 min, el pedido se marca como expirado y el stock se libera automáticamente.
+      </p>
+
+      <div class="pedidos-tabs">
+        <button class="pedidos-tab active" onclick="switchPedidosTab('reservado', this)" id="tab-reservado">⏳ Pendientes <span class="pedidos-tab-count" id="count-reservado">0</span></button>
+        <button class="pedidos-tab" onclick="switchPedidosTab('confirmado', this)">✓ Confirmados <span class="pedidos-tab-count" id="count-confirmado">0</span></button>
+        <button class="pedidos-tab" onclick="switchPedidosTab('cancelado', this)">✗ Cancelados <span class="pedidos-tab-count" id="count-cancelado">0</span></button>
+        <button class="pedidos-tab" onclick="switchPedidosTab('expirado', this)">⌛ Expirados <span class="pedidos-tab-count" id="count-expirado">0</span></button>
+      </div>
+
+      <div id="pedidos-lista">
+        <div class="empty-state" style="padding:2rem;">Cargando pedidos...</div>
+      </div>
+    </div>
+
     <!-- SITE CONFIG -->
     <div class="site-config" id="site-config">
       <div class="section-header">
@@ -1385,7 +1582,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, runTransaction, Timestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // === HOSTING DE IMÁGENES: SUPABASE STORAGE ===
 const SUPABASE_URL = 'https://tdzayysbbraqfydudlsg.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_L1qGEQzCkCGnKyb-70NmGw_SCGhhYko';
@@ -2502,9 +2699,282 @@ window.guardarMarquee = async function() {
   }
 };
 
-// Load config when admin opens
+// ========================================
+// SISTEMA DE PEDIDOS
+// ========================================
+let pedidosCache = [];
+let pedidosTabActivo = 'reservado';
+let pedidosUnsubscribe = null;
+
+const PEDIDOS_REF = collection(db, 'pedidos');
+
+async function expirarPedidosVencidos(pedidos) {
+  const ahora = Timestamp.now();
+  const vencidos = pedidos.filter(p =>
+    p.estado === 'reservado' &&
+    p.reservadoHasta &&
+    p.reservadoHasta.toMillis() < ahora.toMillis()
+  );
+  for (const ped of vencidos) {
+    try {
+      await runTransaction(db, async (tx) => {
+        // 1. Leer pedido (puede haber cambiado)
+        const pedRef = doc(db, 'pedidos', ped.id);
+        const pedSnap = await tx.get(pedRef);
+        if (!pedSnap.exists()) return;
+        const pedData = pedSnap.data();
+        if (pedData.estado !== 'reservado') return;  // ya cambió, skip
+
+        // 2. Leer todos los productos del pedido
+        const prodRefs = [];
+        for (const item of pedData.items || []) {
+          const ref = doc(db, 'productos', item.productoId);
+          const snap = await tx.get(ref);
+          if (snap.exists()) prodRefs.push({ ref, data: snap.data(), item });
+        }
+        // 3. Liberar stockReservado
+        for (const { ref, data, item } of prodRefs) {
+          const resActual = Number(data.stockReservado ?? 0);
+          tx.update(ref, {
+            stockReservado: Math.max(0, resActual - item.qty)
+          });
+        }
+        // 4. Marcar pedido como expirado
+        tx.update(pedRef, {
+          estado: 'expirado',
+          expiradoAt: serverTimestamp()
+        });
+      });
+    } catch (e) {
+      console.warn('[Pedidos] No se pudo expirar', ped.id, e.message);
+    }
+  }
+}
+
+function cargarPedidos() {
+  if (pedidosUnsubscribe) pedidosUnsubscribe();
+  const q = query(PEDIDOS_REF, orderBy('createdAt', 'desc'));
+  pedidosUnsubscribe = onSnapshot(q, async (snap) => {
+    pedidosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Expirar automáticamente los vencidos
+    await expirarPedidosVencidos(pedidosCache);
+    renderPedidos();
+    actualizarContadoresPedidos();
+  }, err => {
+    console.error('[Pedidos] Error al cargar:', err);
+    document.getElementById('pedidos-lista').innerHTML =
+      '<div class="empty-state" style="padding:2rem;color:#c0392b;">Error cargando pedidos: ' + err.message + '</div>';
+  });
+}
+
+function actualizarContadoresPedidos() {
+  const counts = { reservado: 0, confirmado: 0, cancelado: 0, expirado: 0 };
+  pedidosCache.forEach(p => { if (counts.hasOwnProperty(p.estado)) counts[p.estado]++; });
+  document.getElementById('count-reservado').textContent = counts.reservado;
+  document.getElementById('count-confirmado').textContent = counts.confirmado;
+  document.getElementById('count-cancelado').textContent = counts.cancelado;
+  document.getElementById('count-expirado').textContent = counts.expirado;
+  document.getElementById('pedidos-count-badge').textContent = counts.reservado;
+}
+
+function formatoFecha(ts) {
+  if (!ts || !ts.toDate) return '—';
+  const d = ts.toDate();
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${dia}/${mes} ${hh}:${mm}`;
+}
+
+function countdownStr(ts) {
+  if (!ts || !ts.toDate) return '';
+  const diffMs = ts.toMillis() - Date.now();
+  if (diffMs <= 0) return { txt: 'Vencido', cls: 'urgente' };
+  const mins = Math.floor(diffMs / 60000);
+  const segs = Math.floor((diffMs % 60000) / 1000);
+  const txt = mins > 0 ? `${mins}m ${segs}s restantes` : `${segs}s restantes`;
+  const cls = mins < 5 ? 'urgente' : (mins < 15 ? '' : 'ok');
+  return { txt, cls };
+}
+
+function renderPedidos() {
+  const container = document.getElementById('pedidos-lista');
+  const filtrados = pedidosCache.filter(p => p.estado === pedidosTabActivo);
+  if (filtrados.length === 0) {
+    const vacios = {
+      reservado: 'No hay pedidos pendientes. Cuando un cliente confirme una transferencia desde la tienda, aparecerá acá.',
+      confirmado: 'Todavía no confirmaste ninguna venta.',
+      cancelado: 'No hay pedidos cancelados.',
+      expirado: 'No hay pedidos expirados.'
+    };
+    container.innerHTML = `<div class="empty-state" style="padding:2rem;">${vacios[pedidosTabActivo]}</div>`;
+    return;
+  }
+  container.innerHTML = filtrados.map(p => {
+    const items = (p.items || []).map(i =>
+      `<div class="pedido-item-row"><span><span class="cant">${i.qty}×</span>${i.nombre}${i.color ? ' · '+i.color : ''}</span><span>$${(i.precio*i.qty).toLocaleString('es-AR')}</span></div>`
+    ).join('');
+
+    let countdownHtml = '';
+    let cardCls = '';
+    if (p.estado === 'reservado' && p.reservadoHasta) {
+      const cd = countdownStr(p.reservadoHasta);
+      if (cd.txt) {
+        countdownHtml = `<span class="pedido-countdown ${cd.cls}" data-expira="${p.reservadoHasta.toMillis()}">⏱ ${cd.txt}</span>`;
+        if (cd.cls === 'urgente') cardCls = 'por-vencer';
+      }
+    }
+
+    const estadoLabel = {
+      reservado: '⏳ Reservado',
+      confirmado: '✓ Confirmado',
+      cancelado: '✗ Cancelado',
+      expirado: '⌛ Expirado'
+    }[p.estado] || p.estado;
+
+    const acciones = p.estado === 'reservado' ? `
+      <div class="pedido-acciones">
+        <button class="pedido-btn confirmar" onclick="window.confirmarVentaPedido('${p.id}')">
+          ✓ Confirmar venta
+        </button>
+        <button class="pedido-btn cancelar" onclick="window.cancelarPedido('${p.id}')">
+          ✗ Cancelar
+        </button>
+      </div>` : '';
+
+    return `
+      <div class="pedido-card ${cardCls}">
+        <div>
+          <div class="pedido-header">
+            <div>
+              <div class="pedido-id">Pedido <strong>#${p.id.slice(-6).toUpperCase()}</strong></div>
+              <div class="pedido-fecha">${formatoFecha(p.createdAt)} · ${p.metodoPago || 'transferencia'}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              ${countdownHtml}
+              <span class="pedido-estado-badge ${p.estado}">${estadoLabel}</span>
+            </div>
+          </div>
+          <div class="pedido-items">${items}</div>
+          <div class="pedido-total-row">
+            <span>Total</span>
+            <strong>$${Number(p.total||0).toLocaleString('es-AR')}</strong>
+          </div>
+        </div>
+        ${acciones}
+      </div>`;
+  }).join('');
+}
+
+window.switchPedidosTab = function(tab, btn) {
+  document.querySelectorAll('.pedidos-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  pedidosTabActivo = tab;
+  renderPedidos();
+};
+
+window.confirmarVentaPedido = async function(pedidoId) {
+  if (!confirm('¿Confirmar esta venta? Se descontará el stock de los productos.')) return;
+  try {
+    await runTransaction(db, async (tx) => {
+      const pedRef = doc(db, 'pedidos', pedidoId);
+      const pedSnap = await tx.get(pedRef);
+      if (!pedSnap.exists()) throw new Error('Pedido no encontrado');
+      const pedData = pedSnap.data();
+      if (pedData.estado !== 'reservado') throw new Error('El pedido ya no está pendiente');
+
+      // Leer productos
+      const prodRefs = [];
+      for (const item of pedData.items || []) {
+        const ref = doc(db, 'productos', item.productoId);
+        const snap = await tx.get(ref);
+        if (snap.exists()) prodRefs.push({ ref, data: snap.data(), item });
+      }
+      // Descontar stock real + liberar reservado
+      for (const { ref, data, item } of prodRefs) {
+        const stockActual = Number(data.stock ?? 0);
+        const resActual = Number(data.stockReservado ?? 0);
+        tx.update(ref, {
+          stock: Math.max(0, stockActual - item.qty),
+          stockReservado: Math.max(0, resActual - item.qty),
+          updatedAt: serverTimestamp()
+        });
+      }
+      // Marcar pedido como confirmado
+      tx.update(pedRef, {
+        estado: 'confirmado',
+        confirmadoAt: serverTimestamp()
+      });
+    });
+    showToast('Venta confirmada ✓');
+  } catch (e) {
+    console.error(e);
+    showToast('Error: ' + e.message, 'error');
+  }
+};
+
+window.cancelarPedido = async function(pedidoId) {
+  if (!confirm('¿Cancelar este pedido? Se liberará el stock reservado.')) return;
+  try {
+    await runTransaction(db, async (tx) => {
+      const pedRef = doc(db, 'pedidos', pedidoId);
+      const pedSnap = await tx.get(pedRef);
+      if (!pedSnap.exists()) throw new Error('Pedido no encontrado');
+      const pedData = pedSnap.data();
+      if (pedData.estado !== 'reservado') throw new Error('El pedido ya no está pendiente');
+
+      // Liberar stockReservado
+      const prodRefs = [];
+      for (const item of pedData.items || []) {
+        const ref = doc(db, 'productos', item.productoId);
+        const snap = await tx.get(ref);
+        if (snap.exists()) prodRefs.push({ ref, data: snap.data(), item });
+      }
+      for (const { ref, data, item } of prodRefs) {
+        const resActual = Number(data.stockReservado ?? 0);
+        tx.update(ref, {
+          stockReservado: Math.max(0, resActual - item.qty),
+          updatedAt: serverTimestamp()
+        });
+      }
+      // Marcar como cancelado
+      tx.update(pedRef, {
+        estado: 'cancelado',
+        canceladoAt: serverTimestamp()
+      });
+    });
+    showToast('Pedido cancelado — stock liberado');
+  } catch (e) {
+    console.error(e);
+    showToast('Error: ' + e.message, 'error');
+  }
+};
+
+// Actualizar countdowns en pantalla cada 10 seg
+setInterval(() => {
+  document.querySelectorAll('.pedido-countdown').forEach(el => {
+    const expira = Number(el.dataset.expira);
+    if (!expira) return;
+    const diffMs = expira - Date.now();
+    if (diffMs <= 0) {
+      el.textContent = '⏱ Vencido';
+      el.className = 'pedido-countdown urgente';
+    } else {
+      const mins = Math.floor(diffMs / 60000);
+      const segs = Math.floor((diffMs % 60000) / 1000);
+      el.textContent = `⏱ ${mins > 0 ? mins + 'm ' + segs + 's' : segs + 's'} restantes`;
+      el.className = `pedido-countdown ${mins < 5 ? 'urgente' : (mins < 15 ? '' : 'ok')}`;
+    }
+  });
+}, 10000);
+
+// Load config + pedidos when admin opens
 onAuthStateChanged(auth, (user) => {
-  if (user) cargarSiteConfig();
+  if (user) {
+    cargarSiteConfig();
+    cargarPedidos();
+  }
 });
 
 // Close slide modal on outside click
