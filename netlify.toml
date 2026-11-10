@@ -1,0 +1,20 @@
+# Configuración de Netlify
+
+[build]
+  # No hay build command (HTML estático)
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  # Netlify bundlea las functions con esbuild (necesario para ESM + firebase-admin)
+  node_bundler = "esbuild"
+  # Asegurar Node 20+ (para fetch nativo, top-level await, etc.)
+  external_node_modules = ["firebase-admin"]
+
+# Headers de seguridad básicos
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

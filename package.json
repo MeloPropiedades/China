@@ -1,0 +1,9 @@
+{
+  "name": "chinamates",
+  "version": "1.0.0",
+  "description": "China Mates tienda online",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
