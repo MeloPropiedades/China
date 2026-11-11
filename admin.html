@@ -136,6 +136,78 @@
   .form-group textarea { resize:vertical; min-height:80px; }
   .form-hint { font-size:0.75rem; color:var(--tierra-medio); margin-top:4px; font-weight:300; }
 
+  /* PRECIOS POR MÉTODO DE PAGO */
+  .precio-block {
+    background: var(--crema);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.2rem;
+  }
+  .precio-block-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tierra-medio);
+    margin-bottom: 4px;
+  }
+  .precio-block-hint {
+    font-size: 0.78rem;
+    color: var(--tierra-medio);
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+  .precio-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--borde);
+  }
+  .precio-row:first-of-type { border-top: none; }
+  .precio-icon { font-size: 1.5rem; text-align: center; }
+  .precio-row-label strong {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--tierra-oscuro);
+    margin-bottom: 2px;
+  }
+  .precio-row-label span {
+    font-size: 0.72rem;
+    color: var(--tierra-medio);
+  }
+  .precio-row-inputs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .precio-row-inputs input {
+    width: 95px;
+    padding: 7px 10px;
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    text-align: right;
+    background: var(--blanco);
+  }
+  .precio-input-suffix {
+    font-size: 0.85rem;
+    color: var(--tierra-medio);
+    min-width: 12px;
+    margin-right: 6px;
+  }
+  .precio-input-suffix:last-child { margin-right: 0; }
+  @media (max-width: 580px) {
+    .precio-row { grid-template-columns: 36px 1fr; }
+    .precio-row-inputs { grid-column: 1 / -1; justify-content: flex-start; margin-top: 4px; }
+  }
+
   .img-upload-area {
     border:2px dashed var(--borde); border-radius:12px; padding:1.5rem;
     text-align:center; cursor:pointer; transition:all 0.2s; background:var(--crema);
@@ -1449,16 +1521,55 @@
         <label>Descripción</label>
         <textarea id="prod-desc" placeholder="Breve descripción del producto..."></textarea>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Precio ($) *</label>
-          <input type="number" id="prod-precio" placeholder="3500" min="0" />
+      <div class="precio-block">
+        <div class="precio-block-title">Precios por método de pago</div>
+        <div class="precio-block-hint">Editás el % o el precio — lo otro se recalcula solo. Si cambiás el precio de tarjeta, los otros se ajustan manteniendo el %.</div>
+
+        <div class="precio-row">
+          <span class="precio-icon">💳</span>
+          <div class="precio-row-label">
+            <strong>Tarjeta de crédito</strong>
+            <span>Precio principal (el que ve el cliente arriba)</span>
+          </div>
+          <div class="precio-row-inputs">
+            <input type="number" id="prod-precio" placeholder="60000" min="0" oninput="window.recalcularPrecios('base')" />
+            <span class="precio-input-suffix">$</span>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Precio original (tachado)</label>
-          <input type="number" id="prod-precio-original" placeholder="Opcional" min="0" />
-          <div class="form-hint">Solo si tiene descuento</div>
+
+        <div class="precio-row">
+          <span class="precio-icon">💸</span>
+          <div class="precio-row-label">
+            <strong>Transferencia</strong>
+            <span>Descuento sobre precio de tarjeta</span>
+          </div>
+          <div class="precio-row-inputs">
+            <input type="number" id="prod-desc-transferencia" placeholder="15" min="0" max="100" step="0.1" oninput="window.recalcularPrecios('descT')" />
+            <span class="precio-input-suffix">%</span>
+            <input type="number" id="prod-precio-transferencia" placeholder="51000" min="0" oninput="window.recalcularPrecios('precioT')" />
+            <span class="precio-input-suffix">$</span>
+          </div>
         </div>
+
+        <div class="precio-row">
+          <span class="precio-icon">💵</span>
+          <div class="precio-row-label">
+            <strong>Efectivo</strong>
+            <span>Al retirar en Luján</span>
+          </div>
+          <div class="precio-row-inputs">
+            <input type="number" id="prod-desc-efectivo" placeholder="20" min="0" max="100" step="0.1" oninput="window.recalcularPrecios('descE')" />
+            <span class="precio-input-suffix">%</span>
+            <input type="number" id="prod-precio-efectivo" placeholder="48000" min="0" oninput="window.recalcularPrecios('precioE')" />
+            <span class="precio-input-suffix">$</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Precio original (tachado — opcional)</label>
+        <input type="number" id="prod-precio-original" placeholder="Opcional" min="0" />
+        <div class="form-hint">Solo si tenés una promo general. Aparece tachado arriba del precio principal</div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -2168,6 +2279,44 @@ window.quitarColor = function(idx) {
   renderColores();
 };
 
+// Recálculo bidireccional de precios por método de pago
+window.recalcularPrecios = function(trigger) {
+  const g = id => document.getElementById(id);
+  const precioBase = Number(g('prod-precio').value) || 0;
+  const descT = Number(g('prod-desc-transferencia').value) || 0;
+  const precioT = Number(g('prod-precio-transferencia').value) || 0;
+  const descE = Number(g('prod-desc-efectivo').value) || 0;
+  const precioE = Number(g('prod-precio-efectivo').value) || 0;
+
+  // Cambió precio base → recalcular los 2 precios finales (manteniendo %)
+  if (trigger === 'base') {
+    g('prod-precio-transferencia').value = Math.round(precioBase * (1 - descT / 100));
+    g('prod-precio-efectivo').value = Math.round(precioBase * (1 - descE / 100));
+  }
+  // Cambió el % de transferencia → recalcular precio transferencia
+  else if (trigger === 'descT') {
+    g('prod-precio-transferencia').value = Math.round(precioBase * (1 - descT / 100));
+  }
+  // Cambió el precio transferencia → recalcular %
+  else if (trigger === 'precioT') {
+    if (precioBase > 0) {
+      const pct = ((precioBase - precioT) / precioBase) * 100;
+      g('prod-desc-transferencia').value = Math.max(0, Math.round(pct * 10) / 10);
+    }
+  }
+  // Cambió el % de efectivo → recalcular precio efectivo
+  else if (trigger === 'descE') {
+    g('prod-precio-efectivo').value = Math.round(precioBase * (1 - descE / 100));
+  }
+  // Cambió el precio efectivo → recalcular %
+  else if (trigger === 'precioE') {
+    if (precioBase > 0) {
+      const pct = ((precioBase - precioE) / precioBase) * 100;
+      g('prod-desc-efectivo').value = Math.max(0, Math.round(pct * 10) / 10);
+    }
+  }
+};
+
 window.abrirModal = function(prod = null) {
   imagenSeleccionada = null;
   document.getElementById('modal-titulo').textContent = prod ? 'Editar producto' : 'Agregar producto';
@@ -2180,6 +2329,13 @@ window.abrirModal = function(prod = null) {
   document.getElementById('prod-desc').value = prod?.desc || '';
   document.getElementById('prod-precio').value = prod?.precio || '';
   document.getElementById('prod-precio-original').value = prod?.precioOriginal || '';
+  // Nuevos: descuentos por método de pago
+  const descT = (prod?.descTransferencia != null) ? prod.descTransferencia : 15;
+  const descE = (prod?.descEfectivo != null) ? prod.descEfectivo : 20;
+  document.getElementById('prod-desc-transferencia').value = descT;
+  document.getElementById('prod-desc-efectivo').value = descE;
+  // Precios calculados
+  window.recalcularPrecios('base');
   document.getElementById('prod-badge').value = prod?.badge || '';
   document.getElementById('prod-orden').value = prod?.orden ?? productosCache.length;
   document.getElementById('prod-stock').value = prod?.stock ?? '';
