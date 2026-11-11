@@ -5,8 +5,8 @@
 // ============================================================
 
 // URLs de Ualá Bis — SANDBOX (para pasar a prod: quitar ".stage" de ambas URLs)
-const UALA_AUTH_URL = 'https://auth.stage.developers.ar.ua.la/v2/api/auth/token';
-const UALA_CHECKOUT_URL = 'https://checkout.stage.developers.ar.ua.la/v2/api/checkout';
+const UALA_AUTH_URL = 'https://auth.developers.ar.ua.la/v2/api/auth/token';
+const UALA_CHECKOUT_URL = 'https://checkout.developers.ar.ua.la/v2/api/checkout';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -62,8 +62,7 @@ export async function handler(event) {
 
     // 2. Crear orden en Ualá Bis
     // Monto en centavos como string (ej: $35.000 → "3500000")
-        const amountPesos = Number(total).toFixed(2);
-
+    const amountPesos = Number(total).toFixed(2);
     // Descripción con conteo de items
     const nItems = Array.isArray(items) ? items.reduce((a, c) => a + (c.qty || 1), 0) : 0;
     const descripcion = `China Mates · ${nItems} item${nItems !== 1 ? 's' : ''} · Pedido #${pedidoId.slice(-6).toUpperCase()}`;
