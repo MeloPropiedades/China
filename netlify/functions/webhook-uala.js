@@ -9,8 +9,8 @@
 import admin from 'firebase-admin';
 
 // URLs de Ualá Bis — SANDBOX (igual que crear-preferencia-uala.js)
-const UALA_AUTH_URL = 'https://auth.stage.developers.ar.ua.la/v2/api/auth/token';
-const UALA_ORDER_BASE = 'https://checkout.stage.developers.ar.ua.la/v2/api/checkout';
+const UALA_AUTH_URL = 'https://auth.developers.ar.ua.la/v2/api/auth/token';
+const UALA_ORDER_BASE = 'https://checkout.developers.ar.ua.la/v2/api/checkout';
 
 // Init Firebase Admin una sola vez (la function se reutiliza entre invocaciones)
 if (!admin.apps.length) {
