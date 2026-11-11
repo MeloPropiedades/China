@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pago no procesado · China Mates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hueso: #F2EEE8;
+    --greige: #E8E0D3;
+    --carbon-topo: #4D4944;
+    --cafe-arcilla: #6B5544;
+    --rojo-suave: #c0392b;
+    --texto-suave: #8B847D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--hueso);
+    color: var(--carbon-topo);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .card {
+    background: #fff;
+    max-width: 520px;
+    width: 100%;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    border: 1px solid var(--greige);
+  }
+  .x-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--rojo-suave);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 1.75rem;
+    box-shadow: 0 4px 20px rgba(192,57,43,0.3);
+  }
+  h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    color: var(--carbon-topo);
+  }
+  p {
+    color: var(--texto-suave);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+  .pedido-info {
+    background: var(--greige);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--carbon-topo);
+  }
+  .pedido-info strong { font-weight: 500; }
+  .btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    display: inline-block;
+    padding: 14px 24px;
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--carbon-topo);
+    color: var(--hueso);
+  }
+  .btn-primary:hover { background: var(--cafe-arcilla); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--carbon-topo);
+    border: 1px solid var(--carbon-topo);
+  }
+  .btn-secondary:hover { background: var(--greige); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="x-icon">✕</div>
+    <h1>El pago no se procesó</h1>
+    <p>No pudimos completar el pago. Puede ser que la tarjeta haya sido rechazada, que hayas cancelado, o que haya habido un error de conexión.</p>
+
+    <div class="pedido-info" id="pedido-info">
+      Pedido: <strong id="pedido-id">—</strong>
+    </div>
+
+    <p>No te preocupes — tu pedido no se cobró y el stock se liberó automáticamente. Podés intentar de nuevo o contactarnos por WhatsApp si necesitás ayuda.</p>
+
+    <div class="btns">
+      <a href="/" class="btn btn-primary">← Volver a la tienda</a>
+      <a href="https://wa.me/5492323221697?text=Hola!%20Tuve%20un%20problema%20con%20el%20pago%20de%20mi%20pedido" target="_blank" class="btn btn-secondary">Consultar por WhatsApp</a>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const pedido = params.get('pedido');
+  if (pedido) {
+    document.getElementById('pedido-id').textContent = '#' + pedido.slice(-6).toUpperCase();
+  } else {
+    document.getElementById('pedido-info').style.display = 'none';
+  }
+</script>
+</body>
+</html>

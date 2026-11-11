@@ -1867,14 +1867,15 @@
       <span class="pago-opt-arrow">→</span>
     </button>
 
-    <button class="pago-opt" disabled title="Próximamente">
+    <button class="pago-opt" onclick="window.pagarConTarjeta()">
       <span class="pago-opt-icon">💳</span>
       <span class="pago-opt-txt">
         <div class="pago-opt-nombre">Tarjeta de crédito</div>
-        <div class="pago-opt-detalle">Hasta 3 cuotas sin interés · Próximamente</div>
+        <div class="pago-opt-detalle">Hasta 3 cuotas sin interés · Pagás en Ualá</div>
       </span>
       <span class="pago-opt-arrow">→</span>
     </button>
+    <div id="pago-tarjeta-error" style="margin-top:8px;color:#c0392b;font-size:0.85rem;text-align:center;display:none;padding:0 10px;"></div>
 
     <button class="carrito-seguir" onclick="toggleCarrito()">← Seguir comprando</button>
   </div>
@@ -2182,6 +2183,103 @@ window.confirmarPedido = async function() {
 
 window.cerrarModalTransferencia = function() {
   document.getElementById('modal-transferencia').classList.remove('open');
+};
+
+// === PAGAR CON TARJETA (Ualá Bis): crea pedido en Firebase, llama a Netlify Function, redirige a Ualá ===
+window.pagarConTarjeta = async function() {
+  if (carrito.length === 0) return;
+  const errEl = document.getElementById('pago-tarjeta-error');
+  const mostrarError = (msg) => {
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  };
+  if (errEl) errEl.style.display = 'none';
+
+  // Buscar el botón para dar feedback visual
+  const btn = document.querySelector('.pago-opt[onclick*="pagarConTarjeta"]');
+  const btnDetalle = btn?.querySelector('.pago-opt-detalle');
+  const detalleOriginal = btnDetalle?.textContent;
+  if (btn) btn.disabled = true;
+  if (btnDetalle) btnDetalle.textContent = 'Preparando el pago...';
+
+  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
+  const itemsSnapshot = carrito.map(c => ({
+    productoId: c.id,
+    nombre: c.nombre,
+    precio: c.precio,
+    qty: c.qty,
+    color: c.color || null
+  }));
+
+  try {
+    // 1. Transacción: verificar stock y reservar
+    await runTransaction(db, async (tx) => {
+      const prodDocs = [];
+      for (const item of itemsSnapshot) {
+        const ref = doc(db, 'productos', item.productoId);
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error(`"${item.nombre}" ya no está disponible`);
+        prodDocs.push({ ref, data: snap.data(), item });
+      }
+      for (const { data, item } of prodDocs) {
+        const stock = Number(data.stock ?? 0);
+        const reservado = Number(data.stockReservado ?? 0);
+        const disponible = stock - reservado;
+        if (disponible < item.qty) {
+          throw new Error(`"${item.nombre}" solo tiene ${Math.max(0, disponible)} disponible${disponible===1?'':'s'}`);
+        }
+      }
+      for (const { ref, data, item } of prodDocs) {
+        const reservadoActual = Number(data.stockReservado ?? 0);
+        tx.update(ref, { stockReservado: reservadoActual + item.qty });
+      }
+    });
+
+    // 2. Crear pedido en Firebase (estado "reservado")
+    if (btnDetalle) btnDetalle.textContent = 'Creando pedido...';
+    const reservadoHasta = Timestamp.fromMillis(Date.now() + 30 * 60 * 1000);
+    const pedidoRef = await addDoc(collection(db, 'pedidos'), {
+      items: itemsSnapshot,
+      total,
+      estado: 'reservado',
+      metodoPago: 'tarjeta',
+      reservadoHasta,
+      createdAt: serverTimestamp()
+    });
+    const pedidoId = pedidoRef.id;
+
+    // 3. Llamar a Netlify Function para crear preferencia en Ualá Bis
+    if (btnDetalle) btnDetalle.textContent = 'Conectando con Ualá...';
+    const resp = await fetch('/.netlify/functions/crear-preferencia-uala', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: itemsSnapshot,
+        total,
+        pedidoId,
+        siteUrl: window.location.origin
+      })
+    });
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success || !data.checkoutLink) {
+      throw new Error(data.error || 'No se pudo generar el link de pago');
+    }
+
+    // 4. Vaciar carrito local
+    carrito = [];
+    try { localStorage.setItem('chinamates_carrito', JSON.stringify(carrito)); } catch(e) {}
+    actualizarCarrito();
+
+    // 5. Redirigir al checkout de Ualá
+    if (btnDetalle) btnDetalle.textContent = 'Redirigiendo a Ualá...';
+    window.location.href = data.checkoutLink;
+
+  } catch (e) {
+    console.error('[Tarjeta] Error:', e);
+    mostrarError('No se pudo iniciar el pago: ' + (e.message || 'error desconocido'));
+    if (btn) btn.disabled = false;
+    if (btnDetalle) btnDetalle.textContent = detalleOriginal;
+  }
 };
 
 window.copiarDato = async function(btn, texto) {
