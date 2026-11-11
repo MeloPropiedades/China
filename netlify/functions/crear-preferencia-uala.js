@@ -62,7 +62,7 @@ export async function handler(event) {
 
     // 2. Crear orden en Ualá Bis
     // Monto en centavos como string (ej: $35.000 → "3500000")
-    const amountCentavos = String(Math.round(Number(total) * 100));
+        const amountPesos = Number(total).toFixed(2);
 
     // Descripción con conteo de items
     const nItems = Array.isArray(items) ? items.reduce((a, c) => a + (c.qty || 1), 0) : 0;
@@ -75,7 +75,7 @@ export async function handler(event) {
         'Authorization': `Bearer ${access_token}`
       },
       body: JSON.stringify({
-        amount: amountCentavos,
+        amount: amountPesos,
         description: descripcion.slice(0, 200),
         callback_success: `${siteUrl}/pago-exito.html?pedido=${pedidoId}`,
         callback_fail: `${siteUrl}/pago-fallo.html?pedido=${pedidoId}`,
