@@ -240,6 +240,16 @@
     font-size: 0.85rem; color: var(--texto-suave);
     text-decoration: line-through; margin-right: 8px; font-weight: 300;
   }
+  .producto-precio-alt {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.72rem;
+    color: var(--verde-salvia, #4a7c59);
+    margin-top: 3px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+  .producto-precio-alt strong { font-weight: 600; }
   .agregar-btn {
     background: var(--carbon-topo); color: var(--hueso); border: none;
     cursor: pointer; width: 42px; height: 42px; border-radius: 0;
@@ -350,6 +360,24 @@
   .carrito-total strong {
     font-family: 'Oswald', sans-serif; font-size: 1.6rem;
     color: var(--carbon-topo); font-weight: 500;
+  }
+  .carrito-total-desglose {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    padding: 0.65rem 0.75rem;
+    background: var(--greige, #E8E0D3);
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+  }
+  .carrito-total-desglose-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Poppins', sans-serif;
+    color: var(--carbon-topo);
+  }
+  .carrito-total-desglose-row .lbl { color: var(--texto-suave); letter-spacing: 0.02em; }
+  .carrito-total-desglose-row .val { font-family: 'Oswald', sans-serif; font-weight: 500; }
+  .carrito-total-desglose-row .off {
+    font-family: 'Oswald', sans-serif; font-size: 0.68rem;
+    color: var(--verde-salvia); margin-left: 0.3rem; letter-spacing: 0.08em;
   }
   .wsp-btn {
     width: 100%; padding: 16px; background: var(--verde-salvia);
@@ -1324,6 +1352,30 @@
     font-size: 0.78rem;
     letter-spacing: 0.1em;
   }
+  .pd-precios-multi {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .pd-precio-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--carbon-topo);
+  }
+  .pd-precio-item-icon { font-size: 1.1rem; }
+  .pd-precio-item-label { flex: 1; color: var(--texto-suave); letter-spacing: 0.02em; }
+  .pd-precio-item-valor { font-family: 'Oswald', sans-serif; font-weight: 500; }
+  .pd-precio-item-off {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--verde-salvia);
+    margin-left: 0.4rem;
+  }
 
   .pd-section-label {
     font-family: 'Oswald', sans-serif;
@@ -1852,9 +1904,11 @@
   <div class="carrito-items" id="carrito-items"></div>
   <div class="carrito-footer" id="carrito-footer" style="display:none">
     <div class="carrito-total">
-      <span>Total</span>
+      <span>Total con tarjeta</span>
       <strong id="carrito-total-precio">$0</strong>
     </div>
+
+    <div class="carrito-total-desglose" id="carrito-total-desglose" style="display:none"></div>
 
     <div class="pago-titulo">¿Cómo querés pagar?</div>
 
@@ -1862,7 +1916,7 @@
       <span class="pago-opt-icon">💸</span>
       <span class="pago-opt-txt">
         <div class="pago-opt-nombre">Transferencia</div>
-        <div class="pago-opt-detalle">Al CVU de Ualá · Sin recargo</div>
+        <div class="pago-opt-detalle" id="pago-opt-detalle-transf">Al CVU de Ualá · Sin recargo</div>
       </span>
       <span class="pago-opt-arrow">→</span>
     </button>
@@ -1871,7 +1925,7 @@
       <span class="pago-opt-icon">💳</span>
       <span class="pago-opt-txt">
         <div class="pago-opt-nombre">Tarjeta de crédito</div>
-        <div class="pago-opt-detalle">Hasta 3 cuotas sin interés · Pagás en Ualá</div>
+        <div class="pago-opt-detalle" id="pago-opt-detalle-tarjeta">Hasta 3 cuotas sin interés · Pagás en Ualá</div>
       </span>
       <span class="pago-opt-arrow">→</span>
     </button>
@@ -1949,6 +2003,45 @@ function stockDisp(p) {
 }
 window.stockDisp = stockDisp;
 
+// Devuelve los 3 precios de un producto según método de pago
+// { tarjeta, transferencia, efectivo, descT, descE, hayDesc }
+function preciosProducto(p) {
+  const base = Number(p.precio) || 0;
+  const descT = Number(p.descTransferencia) || 0;
+  const descE = Number(p.descEfectivo) || 0;
+  return {
+    tarjeta: base,
+    transferencia: Math.round(base * (1 - descT / 100)),
+    efectivo: Math.round(base * (1 - descE / 100)),
+    descT,
+    descE,
+    hayDesc: descT > 0 || descE > 0
+  };
+}
+window.preciosProducto = preciosProducto;
+
+// Formatea un precio: $25.000
+function fmtPrecio(n) {
+  return '$' + Number(n || 0).toLocaleString('es-AR');
+}
+window.fmtPrecio = fmtPrecio;
+
+// Calcula los totales del carrito según cada método de pago
+// Devuelve { tarjeta, transferencia, efectivo, hayDesc }
+function totalesCarrito() {
+  let tTarjeta = 0, tTransf = 0, tEfectivo = 0;
+  let hayDesc = false;
+  for (const c of carrito) {
+    const pr = preciosProducto(c);
+    tTarjeta += pr.tarjeta * c.qty;
+    tTransf += pr.transferencia * c.qty;
+    tEfectivo += pr.efectivo * c.qty;
+    if (pr.hayDesc) hayDesc = true;
+  }
+  return { tarjeta: tTarjeta, transferencia: tTransf, efectivo: tEfectivo, hayDesc };
+}
+window.totalesCarrito = totalesCarrito;
+
 let todosLosProductos = [];
 window.todosLosProductos = todosLosProductos;
 let carrito = [];
@@ -1982,6 +2075,7 @@ function renderProductos(lista) {
           <div>
             ${p.precioOriginal ? `<span class="precio-original">$${Number(p.precioOriginal).toLocaleString('es-AR')}</span>` : ''}
             <span class="producto-precio">$${Number(p.precio).toLocaleString('es-AR')}</span>
+            ${(() => { const pr = preciosProducto(p); return pr.hayDesc ? `<div class="producto-precio-alt">o <strong>${fmtPrecio(Math.min(pr.efectivo, pr.transferencia))}</strong> en efectivo / transfer.</div>` : ''; })()}
           </div>
           <button class="agregar-btn" onclick="window.agregarAlCarrito('${p.id}')" title="Agregar al carrito"
             ${stockDisp(p)===0 ? 'disabled style="background:#ccc;cursor:not-allowed;opacity:0.5"' : ''}>+</button>
@@ -2045,8 +2139,48 @@ function actualizarCarrito() {
       </div>
     </div>
   `).join('');
-  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
-  document.getElementById('carrito-total-precio').textContent = '$'+total.toLocaleString('es-AR');
+
+  const tots = totalesCarrito();
+
+  // Label del total principal (Tarjeta) + valor
+  const totalLabelEl = document.querySelector('#carrito-footer .carrito-total span');
+  if (totalLabelEl) totalLabelEl.textContent = tots.hayDesc ? 'Total con tarjeta' : 'Total';
+  document.getElementById('carrito-total-precio').textContent = fmtPrecio(tots.tarjeta);
+
+  // Desglose por método (solo si hay descuentos)
+  const desgloseEl = document.getElementById('carrito-total-desglose');
+  if (desgloseEl) {
+    if (tots.hayDesc) {
+      // Calcular % de descuento promedio ponderado (solo informativo, se muestra el monto final)
+      const offT = tots.tarjeta > 0 ? Math.round((1 - tots.transferencia / tots.tarjeta) * 100) : 0;
+      const offE = tots.tarjeta > 0 ? Math.round((1 - tots.efectivo / tots.tarjeta) * 100) : 0;
+      desgloseEl.innerHTML = `
+        ${offT > 0 ? `
+        <div class="carrito-total-desglose-row">
+          <span class="lbl">💸 Transferencia</span>
+          <span><span class="val">${fmtPrecio(tots.transferencia)}</span><span class="off">-${offT}%</span></span>
+        </div>` : ''}
+        ${offE > 0 ? `
+        <div class="carrito-total-desglose-row">
+          <span class="lbl">💵 Efectivo</span>
+          <span><span class="val">${fmtPrecio(tots.efectivo)}</span><span class="off">-${offE}%</span></span>
+        </div>` : ''}
+      `;
+      desgloseEl.style.display = 'flex';
+    } else {
+      desgloseEl.style.display = 'none';
+      desgloseEl.innerHTML = '';
+    }
+  }
+
+  // Textos dinámicos de los botones de pago (muestran el monto real)
+  const detTransf = document.getElementById('pago-opt-detalle-transf');
+  const detTarjeta = document.getElementById('pago-opt-detalle-tarjeta');
+  if (detTransf) detTransf.textContent = tots.hayDesc
+    ? `Al CVU de Ualá · ${fmtPrecio(tots.transferencia)}`
+    : 'Al CVU de Ualá · Sin recargo';
+  if (detTarjeta) detTarjeta.textContent = `Hasta 3 cuotas sin interés · ${fmtPrecio(tots.tarjeta)}`;
+
   footer.style.display = 'block';
 }
 
@@ -2063,7 +2197,8 @@ const WHATSAPP_NUMERO = '5492323221697';
 // === RENDERIZAR MODAL TRANSFERENCIA ===
 window.abrirModalTransferencia = function() {
   if (carrito.length === 0) return;
-  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
+  const tots = totalesCarrito();
+  const total = tots.transferencia;
   document.getElementById('pago-monto-valor').textContent = '$' + total.toLocaleString('es-AR');
 
   // Construir lista de datos (solo los que tienen valor)
@@ -2109,14 +2244,23 @@ window.confirmarPedido = async function() {
   txt.textContent = 'Reservando tu pedido…';
   err.style.display = 'none';
 
-  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
-  const itemsSnapshot = carrito.map(c => ({
-    productoId: c.id,
-    nombre: c.nombre,
-    precio: c.precio,
-    qty: c.qty,
-    color: c.color || null
-  }));
+  const tots = totalesCarrito();
+  const total = tots.transferencia; // lo que realmente se cobra
+  const itemsSnapshot = carrito.map(c => {
+    const pr = preciosProducto(c);
+    return {
+      productoId: c.id,
+      nombre: c.nombre,
+      precio: pr.transferencia,          // precio cobrado por unidad
+      precioTarjeta: pr.tarjeta,
+      precioTransferencia: pr.transferencia,
+      precioEfectivo: pr.efectivo,
+      descTransferencia: pr.descT,
+      descEfectivo: pr.descE,
+      qty: c.qty,
+      color: c.color || null
+    };
+  });
 
   try {
     // 1. Transacción: verificar stock disponible y reservarlo
@@ -2153,6 +2297,9 @@ window.confirmarPedido = async function() {
     const pedidoRef = await addDoc(collection(db, 'pedidos'), {
       items: itemsSnapshot,
       total,
+      totalTarjeta: tots.tarjeta,
+      totalTransferencia: tots.transferencia,
+      totalEfectivo: tots.efectivo,
       estado: 'reservado',
       metodoPago: 'transferencia',
       reservadoHasta,
@@ -2168,7 +2315,9 @@ window.confirmarPedido = async function() {
 
     // 4. Armar mensaje WhatsApp con el ID (encodeURIComponent para que # y otros no rompan la URL)
     const resumen = itemsSnapshot.map(i => `• ${i.nombre} x${i.qty} = $${(i.precio*i.qty).toLocaleString('es-AR')}`).join('\n');
-    const msg = `Hola! Te paso el comprobante de mi pedido:\n\n*Pedido #${pedidoCorto}*\n\n${resumen}\n\n*Total: $${total.toLocaleString('es-AR')}*\n\nMétodo: Transferencia a Ualá`;
+    const ahorro = tots.tarjeta - tots.transferencia;
+    const lineaAhorro = ahorro > 0 ? `\n*Ahorro vs tarjeta: $${ahorro.toLocaleString('es-AR')}*` : '';
+    const msg = `Hola! Te paso el comprobante de mi pedido:\n\n*Pedido #${pedidoCorto}*\n\n${resumen}\n\n*Total: $${total.toLocaleString('es-AR')}*${lineaAhorro}\n\nMétodo: Transferencia a Ualá`;
     const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`;
 
     // 5. Cerrar modal y abrir WhatsApp
@@ -2201,14 +2350,23 @@ window.pagarConTarjeta = async function() {
   if (btn) btn.disabled = true;
   if (btnDetalle) btnDetalle.textContent = 'Preparando el pago...';
 
-  const total = carrito.reduce((a,c)=>a+c.precio*c.qty,0);
-  const itemsSnapshot = carrito.map(c => ({
-    productoId: c.id,
-    nombre: c.nombre,
-    precio: c.precio,
-    qty: c.qty,
-    color: c.color || null
-  }));
+  const tots = totalesCarrito();
+  const total = tots.tarjeta; // lo que se cobra en Ualá (precio tarjeta)
+  const itemsSnapshot = carrito.map(c => {
+    const pr = preciosProducto(c);
+    return {
+      productoId: c.id,
+      nombre: c.nombre,
+      precio: pr.tarjeta,              // precio cobrado por unidad
+      precioTarjeta: pr.tarjeta,
+      precioTransferencia: pr.transferencia,
+      precioEfectivo: pr.efectivo,
+      descTransferencia: pr.descT,
+      descEfectivo: pr.descE,
+      qty: c.qty,
+      color: c.color || null
+    };
+  });
 
   try {
     // 1. Transacción: verificar stock y reservar
@@ -2240,6 +2398,9 @@ window.pagarConTarjeta = async function() {
     const pedidoRef = await addDoc(collection(db, 'pedidos'), {
       items: itemsSnapshot,
       total,
+      totalTarjeta: tots.tarjeta,
+      totalTransferencia: tots.transferencia,
+      totalEfectivo: tots.efectivo,
       estado: 'reservado',
       metodoPago: 'tarjeta',
       reservadoHasta,
@@ -2762,6 +2923,7 @@ function renderProductoDetalle() {
   const CATS = window.CATS || { mate:'Mates', matera:'Materas', yerbera:'Yerberas', bombilla:'Bombillas', yerba:'Yerbas', termo:'Termos', combo:'Combos' };
 
   const descuento = p.precioOriginal ? Math.round((1 - p.precio/p.precioOriginal) * 100) : 0;
+  const pr = preciosProducto(p);
 
   let badgeHtml = '';
   if (p.badge) badgeHtml += `<div class="pd-badge-img ${['Nuevo','Importada','Orgánica'].includes(p.badge)?'oferta':''}">${p.badge}</div>`;
@@ -2808,10 +2970,32 @@ function renderProductoDetalle() {
       <div class="pd-breadcrumb">${CATS[p.cat]||p.cat}</div>
       <h1 class="pd-nombre">${p.nombre}</h1>
       <div class="pd-precios">
-        <span class="pd-precio-actual">$${Number(p.precio).toLocaleString('es-AR')}</span>
+        <span class="pd-precio-actual">${fmtPrecio(pr.tarjeta)}</span>
         ${p.precioOriginal ? `<span class="pd-precio-original">$${Number(p.precioOriginal).toLocaleString('es-AR')}</span>` : ''}
         ${descuento > 0 ? `<span class="pd-precio-descuento">-${descuento}%</span>` : ''}
       </div>
+      ${pr.hayDesc ? `
+      <div class="pd-precios-multi">
+        <div class="pd-precio-item">
+          <span class="pd-precio-item-icon">💳</span>
+          <span class="pd-precio-item-label">Tarjeta de crédito</span>
+          <span class="pd-precio-item-valor">${fmtPrecio(pr.tarjeta)}</span>
+        </div>
+        ${pr.descT > 0 ? `
+        <div class="pd-precio-item">
+          <span class="pd-precio-item-icon">💸</span>
+          <span class="pd-precio-item-label">Transferencia</span>
+          <span class="pd-precio-item-valor">${fmtPrecio(pr.transferencia)}</span>
+          <span class="pd-precio-item-off">-${pr.descT}%</span>
+        </div>` : ''}
+        ${pr.descE > 0 ? `
+        <div class="pd-precio-item">
+          <span class="pd-precio-item-icon">💵</span>
+          <span class="pd-precio-item-label">Efectivo</span>
+          <span class="pd-precio-item-valor">${fmtPrecio(pr.efectivo)}</span>
+          <span class="pd-precio-item-off">-${pr.descE}%</span>
+        </div>` : ''}
+      </div>` : ''}
       ${stockHtml}
       ${p.desc ? `
         <div class="pd-section-label">Descripción</div>
@@ -2830,7 +3014,15 @@ function renderProductoDetalle() {
       </div>
       <div class="pd-meta">
         <div class="pd-meta-item"><span class="pd-meta-icon">🤝</span>Retiro en Luján — Coordinar por WhatsApp</div>
-        <div class="pd-meta-item"><span class="pd-meta-icon">💳</span>3 cuotas sin interés / 15% OFF transferencia o efectivo</div>
+        <div class="pd-meta-item"><span class="pd-meta-icon">💳</span>${(() => {
+          const partes = ['3 cuotas sin interés con tarjeta'];
+          if (pr.descT > 0 && pr.descE > 0 && pr.descT === pr.descE) partes.push(`${pr.descT}% OFF transferencia o efectivo`);
+          else {
+            if (pr.descT > 0) partes.push(`${pr.descT}% OFF transferencia`);
+            if (pr.descE > 0) partes.push(`${pr.descE}% OFF efectivo`);
+          }
+          return partes.join(' · ');
+        })()}</div>
         <div class="pd-meta-item"><span class="pd-meta-icon">💬</span>Consultas por WhatsApp al +54 9 2323 221697</div>
       </div>
     </div>
