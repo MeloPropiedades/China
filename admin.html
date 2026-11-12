@@ -2437,6 +2437,8 @@ window.guardarProducto = async function() {
       desc: document.getElementById('prod-desc').value.trim(),
       precio,
       precioOriginal: Number(document.getElementById('prod-precio-original').value) || null,
+      descTransferencia: Number(document.getElementById('prod-desc-transferencia').value) || 0,
+      descEfectivo: Number(document.getElementById('prod-desc-efectivo').value) || 0,
       badge: document.getElementById('prod-badge').value.trim() || null,
       orden: Number(document.getElementById('prod-orden').value) || 0,
       stock: document.getElementById('prod-stock').value !== '' ? Number(document.getElementById('prod-stock').value) : null,
