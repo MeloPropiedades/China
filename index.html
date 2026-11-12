@@ -279,13 +279,13 @@
   /* CARRITO */
   .carrito-overlay {
     position: fixed; inset: 0; background: rgba(77,73,68,0.55);
-    z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s;
   }
   .carrito-overlay.open { opacity: 1; pointer-events: all; }
   .carrito-panel {
     position: fixed; right: -440px; top: 0; bottom: 0;
     width: 440px; max-width: 95vw; background: var(--hueso);
-    z-index: 201; transition: right 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 401; transition: right 0.4s cubic-bezier(0.4,0,0.2,1);
     display: flex; flex-direction: column; box-shadow: -4px 0 32px rgba(77,73,68,0.18);
   }
   .carrito-panel.open { right: 0; }
@@ -1675,7 +1675,14 @@
       <button class="vista-back" onclick="cerrarVista()">← Volver</button>
       <div class="vista-titulo"><span id="vista-titulo-cat"></span></div>
     </div>
-    <div class="vista-contador" id="vista-contador"></div>
+    <div class="vista-header-right" style="display:flex;align-items:center;gap:1.2rem;">
+      <div class="vista-contador" id="vista-contador"></div>
+      <button class="cart-btn" onclick="toggleCarrito()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-btn-label">Carrito</span>
+        <span class="cart-count" id="cart-count-vista">0</span>
+      </button>
+    </div>
   </div>
   <div class="vista-body">
     <div class="vista-grid" id="vista-grid"></div>
@@ -2116,7 +2123,11 @@ window.agregarAlCarrito = function(id) {
 
 function actualizarCarrito() {
   const count = carrito.reduce((a,c)=>a+c.qty,0);
-  document.getElementById('cart-count').textContent = count;
+  // Actualizar todos los contadores visibles (nav, vista categoría, detalle producto)
+  ['cart-count', 'cart-count-vista', 'cart-count-pd'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = count;
+  });
   const itemsEl = document.getElementById('carrito-items');
   const footer = document.getElementById('carrito-footer');
   if (carrito.length === 0) {
