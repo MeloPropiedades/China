@@ -727,14 +727,55 @@
     .banner-envios { gap: 1.5rem; padding: 1.75rem 1.25rem; }
     .categorias-section { padding: 2.5rem 1rem 0.5rem; }
 
-    /* Grid productos: 2 columnas con imágenes más grandes */
+    /* === GRID PRODUCTOS EN MOVIL: estilo minimalista (opción D) === */
     .productos-grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-      padding: 0 0.75rem 3rem;
+      gap: 14px;
+      padding: 0 12px 3rem;
     }
-    .producto-img-placeholder,
-    .producto-img { height: 210px; }
+    /* Card sin borde ni sombra, fondo transparente */
+    .producto-card {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .producto-card:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: transparent;
+    }
+    /* Imagen cuadrada edge-to-edge */
+    .producto-img,
+    .producto-img-placeholder {
+      aspect-ratio: 1 / 1;
+      height: auto;
+    }
+    .producto-img-placeholder span:first-child { font-size: 2.4rem; }
+    .producto-img-placeholder span:last-child { font-size: 0.65rem; }
+    /* Esconder info extra: categoría, descripción, botón "+" */
+    .producto-cat,
+    .producto-desc,
+    .agregar-btn { display: none; }
+    /* Info compacta debajo de la imagen */
+    .producto-info { padding: 0.5rem 0.15rem 0; }
+    .producto-nombre {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      line-height: 1.3;
+      margin-bottom: 4px;
+      color: var(--carbon-topo);
+    }
+    .producto-footer {
+      display: block;
+      padding-top: 0;
+      border-top: none;
+    }
+    .producto-precio { font-size: 0.88rem; }
+    .precio-original { font-size: 0.7rem; }
+    .producto-precio-alt { font-size: 0.6rem; margin-top: 2px; }
 
     .carrito-panel { width: 100%; right: -100%; }
     footer { padding: 2.5rem 1.25rem 1.5rem; gap: 2rem; }
@@ -743,8 +784,10 @@
   @media (max-width: 420px) {
     .nav-logo { font-size: 1rem; letter-spacing: 0.1em; }
     .hero h1 { font-size: 2rem; }
-    .producto-img-placeholder,
-    .producto-img { height: 180px; }
+    /* Imagen sigue cuadrada; se ajusta sola al ancho de la columna */
+    .producto-nombre { font-size: 0.75rem; }
+    .producto-precio { font-size: 0.85rem; }
+    .producto-precio-alt { font-size: 0.58rem; }
   }
 
   /* LOGO */
